@@ -95,3 +95,11 @@ header {
   text-align: center;
   margin-top: 20px;
 }
+
+.edit-btn {
+  position: absolute;
+  top: 160px;
+  right: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}

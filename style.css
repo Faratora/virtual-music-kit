@@ -21,6 +21,7 @@ header {
   border: 2px solid #000;
   background: #111;
   padding: 10px;
+  
 }
 
 .keys {
@@ -31,14 +32,23 @@ header {
 .key {
   border: 1px solid #000;
   display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  /* justify-content: center;
+  align-items: flex-end; */
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   user-select: none;
   box-sizing: border-box;
-	position: relative;
+  position: relative;
+}
+.key:hover {
+  background: #3219a0; /* Яркий жёлтый при наведении */
+  cursor: pointer; /* Курсор-указатель */
+  transform: scale(1.05); /* Лёгкое увеличение */
+  transition: all 0.2s ease; /* Плавность */
 }
 
 .key .hint {
@@ -47,16 +57,15 @@ header {
   right: 5px;
   font-size: 12px;
   color: #555;
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
   padding: 2px 4px;
   border-radius: 3px;
 }
 
 .key.black .hint {
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   color: #eee;
 }
-
 
 .key.white {
   width: 60px;
@@ -65,6 +74,12 @@ header {
   z-index: 1;
 }
 
+.key.white:hover {
+  background-color: #77b10c;
+}
+.key.black .edit-btn {
+    color: white;  /* Белый цвет для маркера карандаша */
+}
 .black {
   position: absolute;
   width: 40px;
@@ -76,11 +91,21 @@ header {
 }
 
 /* Расположение чёрных клавиш */
-.key[data-note="Cs"] { left: 40px; }
-.key[data-note="Ds"] { left: 100px; }
-.key[data-note="Fs"] { left: 220px; }
-.key[data-note="Gs"] { left: 280px; }
-.key[data-note="As"] { left: 340px; }
+.key[data-note="Cs"] {
+  left: 40px;
+}
+.key[data-note="Ds"] {
+  left: 100px;
+}
+.key[data-note="Fs"] {
+  left: 220px;
+}
+.key[data-note="Gs"] {
+  left: 280px;
+}
+.key[data-note="As"] {
+  left: 340px;
+}
 
 /* Эффект при нажатии */
 .key.playing {
@@ -88,6 +113,7 @@ header {
   color: #fff;
   transform: scale(0.99);
   box-shadow: 0 0 15px #dcdfe0;
+  transition: transform 0.1s ease; 
 }
 .nowplaying {
   font-size: 32px;
@@ -97,9 +123,57 @@ header {
 }
 
 .edit-btn {
-  position: absolute;
-  top: 160px;
-  right: 5px;
   font-size: 12px;
   cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+}
+
+/* Для белых клавиш*/
+.key.white .edit-btn {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Для чёрных клавиш */
+.key.black .edit-btn {
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+input[type="text"] {
+  display: block;
+  position: fixed;
+  top: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px;
+  font-size: 16px;
+  z-index: 1000;
+}
+.label-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* расстояние между буквой и маркером */
+  position: absolute;
+  bottom: 8px;
+  left: 60%;
+  transform: translateX(-50%);
+}
+
+.key-label {
+  font-size: 18px;
+  font-weight: bold;
+  
+}
+
+.edit-btn {
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }

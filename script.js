@@ -1,128 +1,200 @@
+let isKeyPressed = false; // Флаг: нажата ли сейчас какая‑либо клавиша
+
 document.addEventListener('DOMContentLoaded', () => {
-	const app = document.createElement('div');
-	app.className = 'piano';
-	document.body.appendChild(app);
+  const app = document.createElement('div');
+  app.className = 'piano';
+  document.body.appendChild(app);
 
-	// Header
-	const header = document.createElement('header');
-	const title = document.createElement('h1');
-	title.textContent = 'Virtual Music Kit';
-	header.appendChild(title);
+  // Header
+  const header = document.createElement('header');
+  const title = document.createElement('h1');
+  title.textContent = 'Virtual Music Kit';
+  header.appendChild(title);
 
-	const hint = document.createElement('p');
-	hint.textContent = 'Press keys or click the piano';
-	header.appendChild(hint);
-	// вставляем title и hint в начало body
-	document.body.prepend(header);
+  const hint = document.createElement('p');
+  hint.textContent = 'Press keys or click the piano';
+  header.appendChild(hint);
 
-	const nowPlaying = document.createElement('div');
+  const nowPlaying = document.createElement('div');
+  nowPlaying.id = 'nowPlaying';
+  nowPlaying.textContent = 'Now playing: ';
+  header.appendChild(nowPlaying);
 
-	// Контейнер для клавиш
-	const keysContainer = document.createElement('div');
-	keysContainer.className = 'keys';
-	app.appendChild(keysContainer);
+  document.body.prepend(header);
 
+  // Контейнер для клавиш
+  const keysContainer = document.createElement('div');
+  keysContainer.className = 'keys';
+  app.appendChild(keysContainer);
 
-	// Поле ввода для редактирования (скрыто по умолчанию)
+  // Поле ввода для редактирования
   const editInput = document.createElement('input');
   editInput.type = 'text';
   editInput.style.display = 'none';
-  editInput.placeholder = 'Enter new key...';
+  editInput.placeholder = 'Enter new key (e.g., A)...';
   document.body.appendChild(editInput);
 
-	// Массив объектов
-	const keys = [
-		{ note: 'A', type: 'white', code: 'KeyA', src: '/assets/A.wav' },   // A
-		{ note: 'As', type: 'black', code: 'KeyW', src: '/assets/As.wav' },  // As
-		{ note: 'B', type: 'white', code: 'KeyB', src: '/assets/B.wav' },   // B
-		{ note: 'C', type: 'white', code: 'KeyC', src: '/assets/C.wav' },   // C
-		{ note: 'Cs', type: 'black', code: 'KeyQ', src: '/assets/Cs.wav' },  // Cs
-		{ note: 'D', type: 'white', code: 'KeyD', src: '/assets/D.wav' },   // D
-		{ note: 'Ds', type: 'black', code: 'KeyT', src: '/assets/Ds.wav' },  // Ds
-		{ note: 'E', type: 'white', code: 'KeyE', src: '/assets/E.wav' },   // E
-		{ note: 'F', type: 'white', code: 'KeyF', src: '/assets/F.wav' },   // F
-		{ note: 'Fs', type: 'black', code: 'KeyU', src: '/assets/Fs.wav' },  // Fs
-		{ note: 'G', type: 'white', code: 'KeyG', src: '/assets/G.wav' },   // G
-		{ note: 'Gs', type: 'black', code: 'KeyI', src: '/assets/Gs.wav' },  // Gs
-	];
-keys.forEach(({ note, type, code, src }) => {
-		const key = document.createElement('div');
-		key.className = `key ${type}`;
-		key.dataset.note = note;
-		key.dataset.key = code;
+  // Массив клавиш
+  const keys = [
+    { note: 'A', type: 'white', code: 'KeyA', src: '/assets/A.wav' },
+    { note: 'As', type: 'black', code: 'KeyW', src: '/assets/As.wav' },
+    { note: 'B', type: 'white', code: 'KeyB', src: '/assets/B.wav' },
+    { note: 'C', type: 'white', code: 'KeyC', src: '/assets/C.wav' },
+    { note: 'Cs', type: 'black', code: 'KeyQ', src: '/assets/Cs.wav' },
+    { note: 'D', type: 'white', code: 'KeyD', src: '/assets/D.wav' },
+    { note: 'Ds', type: 'black', code: 'KeyT', src: '/assets/Ds.wav' },
+    { note: 'E', type: 'white', code: 'KeyE', src: '/assets/E.wav' },
+    { note: 'F', type: 'white', code: 'KeyF', src: '/assets/F.wav' },
+    { note: 'Fs', type: 'black', code: 'KeyU', src: '/assets/Fs.wav' },
+    { note: 'G', type: 'white', code: 'KeyG', src: '/assets/G.wav' },
+    { note: 'Gs', type: 'black', code: 'KeyI', src: '/assets/Gs.wav' },
+  ];
 
-		 const label = document.createElement('span');
-    label.textContent = code.replace('Key', '');
-    key.appendChild(label);
+  let currentEditingKey = null;
 
-		// кнопка редактирования
-    const editBtn = document.createElement('button');
-    editBtn.textContent = 'Edit';
-    editBtn.className = 'edit-btn';
-    key.appendChild(editBtn);
+  keys.forEach(({ note, type, code, src }) => {
+    const key = document.createElement('div');
+    key.className = `key ${type}`;
+    key.dataset.note = note;
+    key.dataset.key = code;
+
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = code.replace('Key', '');
+    labelSpan.className = 'key-label';
 
     const audio = document.createElement('audio');
     audio.dataset.key = code;
     audio.src = src;
+    audio.preload = 'auto';
 
-    // обработчик редактирования
-    editBtn.addEventListener('click', () => {
+    audio.onerror = () => {
+      console.error(`Failed to load audio for key: ${note}`);
+    };
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = '✎';
+
+    const labelWrapper = document.createElement('div');
+    labelWrapper.className = 'label-wrapper';
+    labelWrapper.appendChild(labelSpan);
+    labelWrapper.appendChild(editBtn);
+
+    key.appendChild(labelWrapper);
+    keysContainer.appendChild(key);
+    document.body.appendChild(audio);
+
+    // Обработка редактирования
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currentEditingKey = key;
       editInput.style.display = 'block';
-      editInput.value = code.replace('Key', '');
+      editInput.value = '';
       editInput.focus();
-
-      // при нажатии Enter
-      editInput.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          const newKey = editInput.value.toUpperCase();
-          const newCode = 'Key' + newKey;
-
-          // проверка уникальности
-          if (document.querySelector(`.key[data-key="${newCode}"]`)) {
-            alert('Эта клавиша уже занята!');
-            return;
-          }
-
-          // обновляем dataset и подпись
-          key.dataset.key = newCode;
-          audio.dataset.key = newCode;
-          label.textContent = newKey;
-
-          editInput.style.display = 'none';
-        }
-      };
     });
+
+    // Обработчики для мыши
+    key.addEventListener('mousedown', () => {
+      playSound(audio, key, nowPlaying, note);
+      key.classList.add('playing'); // Добавляем визуальный эффект нажатия
+    });
+
+    key.addEventListener('mouseup', () => {
+      key.classList.remove('playing');
+    });
+
+    key.addEventListener('mouseleave', () => {
+      key.classList.remove('playing');
+    });
+  });
+
+  // Обработчик клика вне поля редактирования
+  document.addEventListener('click', (e) => {
+    if (editInput.style.display === 'block') {
+      const isClickInsideInput = editInput.contains(e.target);
+      const isClickOnEditBtn = e.target.classList.contains('edit-btn');
+
+      if (!isClickInsideInput && !isClickOnEditBtn) {
+        editInput.style.display = 'none';
+        currentEditingKey = null;
+      }
+    }
+  });
+
+  // Воспроизведение по клавиатуре
+  window.addEventListener('keydown', (e) => {
+    if (editInput.style.display === 'block') return;
+
+if (isKeyPressed) return; // Если уже нажата клавиша — игнорируем
+
+    const audio = document.querySelector(`audio[data-key="${e.code}"]`);
+    const key = document.querySelector(`.key[data-key="${e.code}"]`);
+
+    if (!audio || !key) return;
+
 		
-    // const label = code.replace('Key', '');
-    // key.textContent = label;
-    // const audio = document.createElement('audio');
-		// audio.dataset.key = code;
-		// audio.src = src;
 
-		// key.addEventListener('click', () => {
-		// 	playSound(audio, key, nowPlaying, note);
-		// });
+// Проверяем, не воспроизводится ли уже звук для этой клавиши
+  if (key.classList.contains('playing')) return;
+	
+	// Устанавливаем флаг
+  isKeyPressed = true;
 
-		keysContainer.appendChild(key);
-		document.body.appendChild(audio);
-	});
+    playSound(audio, key, nowPlaying, key.dataset.note);
+    key.classList.add('playing'); // Визуальный эффект нажатия
+  });
+ 
+  window.addEventListener('keyup', (e) => {
+    const key = document.querySelector(`.key[data-key="${e.code}"]`);
+    if (key) {
+      key.classList.remove('playing');
+    }
+		 // Сбрасываем флаг — можно нажать другую клавишу
+  isKeyPressed = false;
+  });
 
-document.body.appendChild(app);
+  // Обработчик для editInput
+  editInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && currentEditingKey) {
+      e.stopPropagation();
 
-	// Воспроизведение по клавиатуре
-	window.addEventListener('keydown', (e) => {
-		const audio = document.querySelector(`audio[data-key="${e.code}"]`);
-		const key = document.querySelector(`.key[data-key="${e.code}"]`);
-		if (!audio || !key) return;
-		playSound(audio, key, nowPlaying, key.dataset.note);
-	});
+      const newKey = editInput.value.trim().toUpperCase();
+
+      if (!/^[A-Z]$/.test(newKey)) {
+        alert('Введите одну букву от A до Z.');
+        return;
+      }
+
+      const newCode = 'Key' + newKey;
+
+      const isDuplicate = keys.some(k => k.code === newCode && k.note !== currentEditingKey.dataset.note);
+      if (isDuplicate) {
+        alert('Эта клавиша уже назначена другому звуку.');
+        return;
+      }
+
+      const note = currentEditingKey.dataset.note;
+      const keyObj = keys.find(k => k.note === note);
+      const audio = document.querySelector(`audio[data-key="${keyObj.code}"]`);
+
+      currentEditingKey.dataset.key = newCode;
+      const labelSpan = currentEditingKey.querySelector('.key-label');
+      labelSpan.textContent = newKey;
+      audio.dataset.key = newCode;
+
+      keyObj.code = newCode;
+
+      editInput.style.display = 'none';
+      currentEditingKey = null;
+    }
+  });
 });
 
+// Функция воспроизведения звука
 function playSound(audio, key, nowPlaying, note) {
-	key.classList.add('playing');
-	nowPlaying.textContent = note;
-	audio.currentTime = 0;
-	audio.play();
-	audio.onended = () => key.classList.remove('playing');
+  nowPlaying.textContent = `Now playing: ${note}`;
+  audio.currentTime = 0;
+  audio.play().catch(e => {
+    console.error('Playback failed:', e);
+  });
 }
-

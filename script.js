@@ -1,4 +1,4 @@
-let isKeyPressed = false; // Флаг: нажата ли сейчас какая‑либо клавиша
+let isKeyPressed = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.createElement('div');
@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     audio.onerror = () => {
       console.error(`Failed to load audio for key: ${note}`);
+      alert(`Не удалось загрузить звук для клавиши ${note}. Проверьте файл ${src}`);
     };
 
     const editBtn = document.createElement('button');
@@ -94,9 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Обработчики для мыши
-    key.addEventListener('mousedown', () => {
+    key.addEventListener('mousedown', (e) => {
+			if (e.target.closest('.edit-btn')) return;
       playSound(audio, key, nowPlaying, note);
-      key.classList.add('playing'); // Добавляем визуальный эффект нажатия
+      key.classList.add('playing');
     });
 
     key.addEventListener('mouseup', () => {
@@ -125,37 +127,28 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('keydown', (e) => {
     if (editInput.style.display === 'block') return;
 
-if (isKeyPressed) return; // Если уже нажата клавиша — игнорируем
-
     const audio = document.querySelector(`audio[data-key="${e.code}"]`);
     const key = document.querySelector(`.key[data-key="${e.code}"]`);
 
     if (!audio || !key) return;
-
-		
-
-// Проверяем, не воспроизводится ли уже звук для этой клавиши
-  if (key.classList.contains('playing')) return;
-	
-	// Устанавливаем флаг
-  isKeyPressed = true;
+    if (key.classList.contains('playing')) return;
 
     playSound(audio, key, nowPlaying, key.dataset.note);
-    key.classList.add('playing'); // Визуальный эффект нажатия
+    key.classList.add('playing');
   });
- 
+
   window.addEventListener('keyup', (e) => {
     const key = document.querySelector(`.key[data-key="${e.code}"]`);
-    if (key) {
+    if (key && key.classList.contains('playing')) {
       key.classList.remove('playing');
+      isKeyPressed = false;
     }
-		 // Сбрасываем флаг — можно нажать другую клавишу
-  isKeyPressed = false;
   });
 
   // Обработчик для editInput
   editInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && currentEditingKey) {
+      e.preventDefault();
       e.stopPropagation();
 
       const newKey = editInput.value.trim().toUpperCase();
@@ -167,7 +160,11 @@ if (isKeyPressed) return; // Если уже нажата клавиша — и�
 
       const newCode = 'Key' + newKey;
 
-      const isDuplicate = keys.some(k => k.code === newCode && k.note !== currentEditingKey.dataset.note);
+      const isDuplicate = keys.some(k => 
+        k.code === newCode &&
+        k.note !== currentEditingKey.dataset.note
+      );
+
       if (isDuplicate) {
         alert('Эта клавиша уже назначена другому звуку.');
         return;
@@ -196,5 +193,6 @@ function playSound(audio, key, nowPlaying, note) {
   audio.currentTime = 0;
   audio.play().catch(e => {
     console.error('Playback failed:', e);
+    alert('Не удалось воспроизвести звук. Проверьте настройки браузера.');
   });
 }

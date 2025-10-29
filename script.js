@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     audio.preload = "auto";
     audio.onerror = () => {
       console.error(`Failed to load audio for key: ${note}`);
-      alert(`Не удалось загрузить звук для клавиши ${note}. Проверьте файл ${src}`);
+      alert(`Failed to load key sound ${note}. Check file ${src}`);
     };
 
     const editBtn = document.createElement("button");
@@ -143,14 +143,41 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("keydown", (e) => {
     if (editInput.style.display === "block" || window.isPlayingSequence) return;  // Блокировка
     if (isKeyPressed) return;
+
     isKeyPressed = true;
-    const audio = document.querySelector(`audio[data-key="${e.code}"]`);
-    const key = document.querySelector(`.key[data-key="${e.code}"]`);
-    if (!audio || !key) return;
-    if (key.classList.contains("playing")) return;
-    playSound(audio, key, nowPlaying, key.dataset.note);
+
+// Получаем физический код клавиши (всегда KeyA, KeyW и т. д.)
+  const keyCode = e.code;
+ // Ищем в массиве keys объект с таким code
+  const keyObj = keys.find(k => k.code === keyCode);
+  if (!keyObj) {
+    isKeyPressed = false;
+    return;
+  }
+
+  // Берём note из найденного объекта (это логический символ, например "A")
+  const note = keyObj.note;
+  const audio = document.querySelector(`audio[data-key="${keyCode}"]`);
+  const key = document.querySelector(`.key[data-key="${keyCode}"]`);
+
+  if (audio && key) {
+    playSound(audio, key, nowPlaying, note);
     key.classList.add("playing");
-  });
+  }
+
+  // Сбрасываем флаг при отпускании клавиши
+  window.addEventListener("keyup", () => {
+    if (key && key.classList.contains("playing")) {
+      key.classList.remove("playing");
+    }
+    isKeyPressed = false;
+  }, { once: true });
+});
+
+
+
+
+   
 
   window.addEventListener("keyup", (e) => {
     const key = document.querySelector(`.key[data-key="${e.code}"]`);
@@ -178,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         (k) => k.code === newCode && k.note !== currentEditingKey.dataset.note
       );
       if (isDuplicate) {
-        alert("Эта клавиша уже назначена другому звуку.");
+        alert("This key is already assigned to another sound.");
         return;
       }
       const note = currentEditingKey.dataset.note;
@@ -201,7 +228,7 @@ function playSound(audio, key, nowPlaying, note) {
   audio.currentTime = 0;
   audio.play().catch((e) => {
     console.error("Playback failed:", e);
-    alert("Не удалось воспроизвести звук. Проверьте настройки браузера.");
+    alert("The sound could not be played. Please check your browser settings.");
   });
 };
 

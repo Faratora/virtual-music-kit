@@ -45,9 +45,9 @@ header {
   position: relative;
 }
 .key:hover {
-  background: #3219a0; /* Яркий жёлтый при наведении */
-  cursor: pointer; /* Курсор-указатель */
-  transform: scale(1.05); /* Лёгкое увеличение */
+  background: #3219a0; 
+  cursor: pointer; 
+  /* transform: scale(1.05); Лёгкое увеличение */
   transition: all 0.2s ease; /* Плавность */
 }
 
@@ -75,7 +75,7 @@ header {
 }
 
 .key.white:hover {
-  background-color: #77b10c;
+  background-color: #ccc;
 }
 .key.black .edit-btn {
     color: white;  /* Белый цвет для маркера карандаша */
@@ -109,9 +109,9 @@ header {
 
 /* Эффект при нажатии */
 .key.playing {
-  background: #ccc;
+  background: #888888;
   color: #fff;
-  transform: scale(0.99);
+  transform: scale(0.85);
   box-shadow: 0 0 15px #dcdfe0;
   transition: transform 0.1s ease; 
 }
@@ -181,6 +181,7 @@ input[type="text"] {
   box-shadow: 0 0 10px #00bfff;
   transform: scale(1.05);
   z-index: 3;
+  
 }
 .active {
   box-shadow: 0 0 10px gold;
@@ -192,3 +193,9 @@ input[type="text"] {
   cursor: not-allowed;
   pointer-events: none; /* Полностью блокирует клики, если нужно */
 }
+/* #sequenceInput{
+  margin-top: 200px;
+} */
+/* #playBtn{
+  margin-top: 230px;
+} */

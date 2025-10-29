@@ -103,8 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       currentEditingKey = key;
       key.classList.add('editing');
+
+			// Показываем поле ввода и подставляем текущее значение
       editInput.style.display = "block";
-      editInput.value = "";
+      editInput.value = key.dataset.note; // Подставляем текущий note (например, "A")
       editInput.focus();
     });
 

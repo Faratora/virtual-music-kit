@@ -91,19 +91,19 @@ header {
 }
 
 /* Расположение чёрных клавиш */
-.key[data-note="Cs"] {
+.key[data-note="Q"] {
   left: 40px;
 }
-.key[data-note="Ds"] {
+.key[data-note="T"] {
   left: 100px;
 }
-.key[data-note="Fs"] {
+.key[data-note="U"] {
   left: 220px;
 }
-.key[data-note="Gs"] {
+.key[data-note="I"] {
   left: 280px;
 }
-.key[data-note="As"] {
+.key[data-note="W"] {
   left: 340px;
 }
 
@@ -181,4 +181,9 @@ input[type="text"] {
   box-shadow: 0 0 10px #00bfff;
   transform: scale(1.05);
   z-index: 3;
+}
+.active {
+  box-shadow: 0 0 10px gold;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
 }

@@ -187,3 +187,8 @@ input[type="text"] {
   transform: scale(1.05);
   transition: all 0.2s ease;
 }
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none; /* Полностью блокирует клики, если нужно */
+}

@@ -1,4 +1,7 @@
 let isKeyPressed = false;
+let isKeyHeld = false;           // true, если хоть одна клавиша физически удерживается
+let heldKeyCode = null;          // код текущей удерживаемой клавиши (например, "KeyA")
+
 
 // Массив клавиш
 const keys = [
@@ -140,39 +143,83 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Воспроизведение по клавиатуре
-  window.addEventListener("keydown", (e) => {
-    if (editInput.style.display === "block" || window.isPlayingSequence) return;  // Блокировка
-    if (isKeyPressed) return;
 
-    isKeyPressed = true;
+window.addEventListener("keydown", (e) => {
+  if (editInput.style.display === "block" || window.isPlayingSequence) return;
 
-// Получаем физический код клавиши (всегда KeyA, KeyW и т. д.)
   const keyCode = e.code;
- // Ищем в массиве keys объект с таким code
-  const keyObj = keys.find(k => k.code === keyCode);
-  if (!keyObj) {
-    isKeyPressed = false;
-    return;
-  }
+	const keyObj = keys.find(k => k.code === keyCode);
+  if (!keyObj) return;
 
-  // Берём note из найденного объекта (это логический символ, например "A")
+	// Новая проверка: игнорируем ноту C (клавишу A)
+  if (keyObj.note === 'C') return;
+
+	 // Если уже нажата другая клавиша, игнорируем новые нажатия
+  if (isKeyPressed || isKeyHeld) return;
+
   const note = keyObj.note;
   const audio = document.querySelector(`audio[data-key="${keyCode}"]`);
   const key = document.querySelector(`.key[data-key="${keyCode}"]`);
 
+
   if (audio && key) {
+    isKeyPressed = true;
+    isKeyHeld = true;
+    heldKeyCode = keyCode;
     playSound(audio, key, nowPlaying, note);
     key.classList.add("playing");
-  }
 
-  // Сбрасываем флаг при отпускании клавиши
-  window.addEventListener("keyup", () => {
-    if (key && key.classList.contains("playing")) {
-      key.classList.remove("playing");
-    }
-    isKeyPressed = false;
-  }, { once: true });
+    // Вложенный keyup для этой клавиши
+    const keyupHandler = (e) => {
+      if (e.code === keyCode) {
+        isKeyPressed = false;
+        isKeyHeld = false;
+        heldKeyCode = null;
+        key.classList.remove("playing");
+        window.removeEventListener("keyup", keyupHandler);
+      }
+    };
+    window.addEventListener("keyup", keyupHandler);
+  }
 });
+
+
+
+
+
+//   window.addEventListener("keydown", (e) => {
+//     if (editInput.style.display === "block" || window.isPlayingSequence) return;  // Блокировка
+//     if (isKeyPressed) return;
+
+//     isKeyPressed = true;
+
+// // Получаем физический код клавиши (всегда KeyA, KeyW и т. д.)
+//   const keyCode = e.code;
+//  // Ищем в массиве keys объект с таким code
+//   const keyObj = keys.find(k => k.code === keyCode);
+//   if (!keyObj) {
+//     isKeyPressed = false;
+//     return;
+//   }
+
+//   // Берём note из найденного объекта (это логический символ, например "A")
+//   const note = keyObj.note;
+//   const audio = document.querySelector(`audio[data-key="${keyCode}"]`);
+//   const key = document.querySelector(`.key[data-key="${keyCode}"]`);
+
+//   if (audio && key) {
+//     playSound(audio, key, nowPlaying, note);
+//     key.classList.add("playing");
+//   }
+
+//   // Сбрасываем флаг при отпускании клавиши
+//   window.addEventListener("keyup", () => {
+//     if (key && key.classList.contains("playing")) {
+//       key.classList.remove("playing");
+//     }
+//     isKeyPressed = false;
+//   }, { once: true });
+// });
 
 
 
@@ -226,11 +273,31 @@ document.addEventListener("DOMContentLoaded", () => {
 function playSound(audio, key, nowPlaying, note) {
   nowPlaying.textContent = `Now playing: ${note}`;
   audio.currentTime = 0;
+
   audio.play().catch((e) => {
     console.error("Playback failed:", e);
     alert("The sound could not be played. Please check your browser settings.");
+    key.classList.remove("playing");  // Снимаем подсветку при ошибке
   });
-};
+
+  // // Снимаем класс playing при окончании звука
+  // audio.addEventListener("ended", () => {
+  //   key.classList.remove("playing");
+  // }, { once: true });
+}
+
+
+
+
+
+// function playSound(audio, key, nowPlaying, note) {
+//   nowPlaying.textContent = `Now playing: ${note}`;
+//   audio.currentTime = 0;
+//   audio.play().catch((e) => {
+//     console.error("Playback failed:", e);
+//     alert("The sound could not be played. Please check your browser settings.");
+//   });
+// };
 
 function playSequence() {
   document.body.classList.add('sequence-playing');

@@ -257,6 +257,22 @@ function playSequence() {
   playBtn.classList.add('disabled');
 
   const sequence = sequenceInput.value.trim().toUpperCase();
+
+// Ограничение: максимум 20 символов
+  const MAX_LENGTH = 24;
+	if (sequence.length > MAX_LENGTH) {
+    alert(`Sequence too long! Maximum ${MAX_LENGTH} characters allowed.`);
+    // Сбрасываем состояние
+    sequenceInput.disabled = false;
+    playBtn.disabled = false;
+    sequenceInput.classList.remove('disabled');
+    playBtn.classList.remove('disabled');
+    window.isPlayingSequence = false;
+    document.body.classList.remove('sequence-playing');
+    return;
+  }
+
+
   if (!sequence) {
     alert("Please enter a sequence (e.g., ACDF).");
     // Сбрасываем состояние при ошибке

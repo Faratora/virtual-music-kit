@@ -13,8 +13,7 @@ body {
   background: #222;
   font-family: 'Arial', sans-serif;
   padding: clamp(16px, 5vw, 20px);
-  transition: padding 0.3s ease;
-  border: 2px solid #e40606;
+  transition: padding 0.3s ease; 
 }
 
 header {

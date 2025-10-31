@@ -1,6 +1,6 @@
 let isKeyPressed = false;
-let isKeyHeld = false;           // true, если хоть одна клавиша физически удерживается
-let heldKeyCode = null;          // код текущей удерживаемой клавиши (например, "KeyA")
+let isKeyHeld = false; // true, если хоть одна клавиша физически удерживается
+let heldKeyCode = null; // код удерживаемой клавиши
 
 
 // Массив клавиш
@@ -38,11 +38,36 @@ document.addEventListener("DOMContentLoaded", () => {
   header.appendChild(nowPlaying);
 
   // Поле для ввода последовательности
-  const sequenceInput = document.createElement("input");
-  sequenceInput.type = "text";
-  sequenceInput.id = "sequenceInput";
-  sequenceInput.placeholder = "Enter sequence (e.g. ACDF)...";
-  header.appendChild(sequenceInput);
+const sequenceInput = document.createElement("input");
+sequenceInput.type = "text";
+sequenceInput.id = "sequenceInput";
+sequenceInput.placeholder = "Enter sequence (e.g. ACDF)...";
+header.appendChild(sequenceInput);
+
+// Разрешённые символы (в верхнем регистре)
+const allowedChars = new Set(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'Q', 'T', 'U', 'I', 'W']);
+
+// ОБРАБОТЧИК ВВОДА — единственный!
+sequenceInput.addEventListener('input', function(e) {
+  const currentValue = e.target.value;
+  
+  // Преобразуем в верхний регистр и фильтруем
+  const filteredValue = currentValue
+    .toUpperCase()
+    .split('')
+    .filter(char => allowedChars.has(char))
+    .join('');
+  
+  // Если есть недопустимые символы — показываем предупреждение
+  if (currentValue.toUpperCase() !== filteredValue) {
+    alert('Error: only letters allowed A, B, C, D, E, F, G, Q, T, U, I, W!');
+  }
+  
+  // Обновляем значение поля (только разрешённые символы)
+  e.target.value = filteredValue;
+});
+
+
 
   // Кнопка «Проиграть последовательность»
   const playBtn = document.createElement("button");
@@ -61,8 +86,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const editInput = document.createElement("input");
   editInput.type = "text";
   editInput.style.display = "none";
-  editInput.placeholder = "Enter new key (e.g., A)...";
-  document.body.appendChild(editInput);
+  // editInput.placeholder = "Enter new key (e.g., A)...";
+  // app.appendChild(editInput);
+
+header.appendChild(editInput); 
 
   let currentEditingKey = null;
 
@@ -109,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			// Показываем поле ввода и подставляем текущее значение
       editInput.style.display = "block";
-      editInput.value = key.dataset.note; // Подставляем текущий note (например, "A")
+      editInput.value = key.dataset.note; // Подставляем текущий note
       editInput.focus();
     });
 
@@ -145,14 +172,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Воспроизведение по клавиатуре
 
 window.addEventListener("keydown", (e) => {
-  if (editInput.style.display === "block" || window.isPlayingSequence) return;
+  if (editInput.style.display === "block" || window.isPlayingSequence || document.activeElement === sequenceInput) return;
 
   const keyCode = e.code;
 	const keyObj = keys.find(k => k.code === keyCode);
   if (!keyObj) return;
 
-	// Новая проверка: игнорируем ноту C (клавишу A)
-  if (keyObj.note === 'C') return;
+	
 
 	 // Если уже нажата другая клавиша, игнорируем новые нажатия
   if (isKeyPressed || isKeyHeld) return;
@@ -166,10 +192,11 @@ window.addEventListener("keydown", (e) => {
     isKeyPressed = true;
     isKeyHeld = true;
     heldKeyCode = keyCode;
+    
     playSound(audio, key, nowPlaying, note);
     key.classList.add("playing");
 
-    // Вложенный keyup для этой клавиши
+    // keyup для клавиши
     const keyupHandler = (e) => {
       if (e.code === keyCode) {
         isKeyPressed = false;
@@ -182,49 +209,6 @@ window.addEventListener("keydown", (e) => {
     window.addEventListener("keyup", keyupHandler);
   }
 });
-
-
-
-
-
-//   window.addEventListener("keydown", (e) => {
-//     if (editInput.style.display === "block" || window.isPlayingSequence) return;  // Блокировка
-//     if (isKeyPressed) return;
-
-//     isKeyPressed = true;
-
-// // Получаем физический код клавиши (всегда KeyA, KeyW и т. д.)
-//   const keyCode = e.code;
-//  // Ищем в массиве keys объект с таким code
-//   const keyObj = keys.find(k => k.code === keyCode);
-//   if (!keyObj) {
-//     isKeyPressed = false;
-//     return;
-//   }
-
-//   // Берём note из найденного объекта (это логический символ, например "A")
-//   const note = keyObj.note;
-//   const audio = document.querySelector(`audio[data-key="${keyCode}"]`);
-//   const key = document.querySelector(`.key[data-key="${keyCode}"]`);
-
-//   if (audio && key) {
-//     playSound(audio, key, nowPlaying, note);
-//     key.classList.add("playing");
-//   }
-
-//   // Сбрасываем флаг при отпускании клавиши
-//   window.addEventListener("keyup", () => {
-//     if (key && key.classList.contains("playing")) {
-//       key.classList.remove("playing");
-//     }
-//     isKeyPressed = false;
-//   }, { once: true });
-// });
-
-
-
-
-   
 
   window.addEventListener("keyup", (e) => {
     const key = document.querySelector(`.key[data-key="${e.code}"]`);
@@ -244,7 +228,7 @@ window.addEventListener("keydown", (e) => {
       e.stopPropagation();
       const newKey = editInput.value.trim().toUpperCase();
       if (!/^[A-Z]$/.test(newKey)) {
-        alert("Введите одну букву от A до Z.");
+        alert("Enter one letter from A to Z.");
         return;
       }
       const newCode = "Key" + newKey;
@@ -269,7 +253,7 @@ window.addEventListener("keydown", (e) => {
   });
 });
 
-// Функция воспроизведения звука
+// Воспроизведения звука
 function playSound(audio, key, nowPlaying, note) {
   nowPlaying.textContent = `Now playing: ${note}`;
   audio.currentTime = 0;
@@ -277,27 +261,9 @@ function playSound(audio, key, nowPlaying, note) {
   audio.play().catch((e) => {
     console.error("Playback failed:", e);
     alert("The sound could not be played. Please check your browser settings.");
-    key.classList.remove("playing");  // Снимаем подсветку при ошибке
+    key.classList.remove("playing");  // Убираем подсветку при ошибке
   });
-
-  // // Снимаем класс playing при окончании звука
-  // audio.addEventListener("ended", () => {
-  //   key.classList.remove("playing");
-  // }, { once: true });
 }
-
-
-
-
-
-// function playSound(audio, key, nowPlaying, note) {
-//   nowPlaying.textContent = `Now playing: ${note}`;
-//   audio.currentTime = 0;
-//   audio.play().catch((e) => {
-//     console.error("Playback failed:", e);
-//     alert("The sound could not be played. Please check your browser settings.");
-//   });
-// };
 
 function playSequence() {
   document.body.classList.add('sequence-playing');
@@ -310,7 +276,7 @@ function playSequence() {
   playBtn.disabled = false;
   sequenceInput.classList.remove('disabled');
   playBtn.classList.remove('disabled');
-  // Снимаем класс
+  // Удаляем  класс
   document.body.classList.remove('sequence-playing');
 
     return;
@@ -325,7 +291,7 @@ function playSequence() {
 
   const sequence = sequenceInput.value.trim().toUpperCase();
 
-// Ограничение: максимум 20 символов
+// Ограничение: максимум 24 символов
   const MAX_LENGTH = 24;
 	if (sequence.length > MAX_LENGTH) {
     alert(`Sequence too long! Maximum ${MAX_LENGTH} characters allowed.`);
@@ -353,11 +319,11 @@ function playSequence() {
 
   const noteMap = new Map();
   keys.forEach(k => {
-    noteMap.set(k.note, k); // теперь сопоставляем по полному note (W, а не A)
+    noteMap.set(k.note, k); //сопоставляем по note
   });
 
   let index = 0;
-  const delay = 400;
+  const delay = 300;
 
   function playNext() {
     if (index >= sequence.length) {
@@ -390,12 +356,12 @@ function playSequence() {
         audio.currentTime = 0;
         audio.play()
           .then(() => {
-            // Успешное воспроизведение — ждём окончания
+            // Воспроизведение — ждём окончания
             audio.addEventListener("ended", onAudioEnded, { once: true });
           })
           .catch((error) => {
             console.error("Playback failed:", error);
-            // Даже при ошибке переходим к следующей ноте
+            // При ошибке переходим к следующей ноте
             key.classList.remove("playing");
             index++;
             setTimeout(playNext, delay);

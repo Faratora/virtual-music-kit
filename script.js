@@ -5,18 +5,18 @@ let heldKeyCode = null; // код удерживаемой клавиши
 
 // Массив клавиш
 const keys = [
-  { note: "A", type: "white", code: "KeyA", src: "/assets/A.wav" },
-  { note: "W", type: "black", code: "KeyW", src: "/assets/As.wav" },
-  { note: "B", type: "white", code: "KeyB", src: "/assets/B.wav" },
-  { note: "C", type: "white", code: "KeyC", src: "/assets/C.wav" },
-  { note: "Q", type: "black", code: "KeyQ", src: "/assets/Cs.wav" },
-  { note: "D", type: "white", code: "KeyD", src: "/assets/D.wav" },
-  { note: "T", type: "black", code: "KeyT", src: "/assets/Ds.wav" },
-  { note: "E", type: "white", code: "KeyE", src: "/assets/E.wav" },
-  { note: "F", type: "white", code: "KeyF", src: "/assets/F.wav" },
-  { note: "U", type: "black", code: "KeyU", src: "/assets/Fs.wav" },
-  { note: "G", type: "white", code: "KeyG", src: "/assets/G.wav" },
-  { note: "I", type: "black", code: "KeyI", src: "/assets/Gs.wav" },
+  { note: "A", type: "white", code: "KeyA", src: "assets/A.wav" },
+  { note: "W", type: "black", code: "KeyW", src: "assets/As.wav" },
+  { note: "B", type: "white", code: "KeyB", src: "assets/B.wav" },
+  { note: "C", type: "white", code: "KeyC", src: "assets/C.wav" },
+  { note: "Q", type: "black", code: "KeyQ", src: "assets/Cs.wav" },
+  { note: "D", type: "white", code: "KeyD", src: "assets/D.wav" },
+  { note: "T", type: "black", code: "KeyT", src: "assets/Ds.wav" },
+  { note: "E", type: "white", code: "KeyE", src: "assets/E.wav" },
+  { note: "F", type: "white", code: "KeyF", src: "assets/F.wav" },
+  { note: "U", type: "black", code: "KeyU", src: "assets/Fs.wav" },
+  { note: "G", type: "white", code: "KeyG", src: "assets/G.wav" },
+  { note: "I", type: "black", code: "KeyI", src: "assets/Gs.wav" },
 ];
 
 document.addEventListener("DOMContentLoaded", () => {

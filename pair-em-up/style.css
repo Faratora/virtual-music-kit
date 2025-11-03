@@ -1,0 +1,26 @@
+#game-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+		border: 1px solid red;
+		text-align: center;
+}
+.link-container {
+  display: flex;
+  align-items: center;       /* выравнивание по вертикали */
+  justify-content: center;   /* центрируем по горизонтали */
+  margin: 10px 0;
+}
+
+.link-container a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+}
+
+.link-container img {
+  width: 20px;
+  height: 20px;
+  margin-left: 6px;
+}

@@ -292,10 +292,21 @@ const hintButton = document.createElement('button');
 const undoButton = document.createElement('button');
 undoButton.id = 'undo-btn';
 undoButton.textContent = 'Revert';
-undoButton.disabled = true;
-undoButton.onclick = undoLastMove;
+undoButton.classList.add('disabled'); // визуально отключена
+undoButton.disabled = true;           // логически отключена
 gameContainer.appendChild(undoButton);
 
+// Добавляем проверку здесь
+// Добавляем проверку создания
+    if (!undoButton) {
+        console.error('Ошибка: кнопка отмены не создана');
+    } else {
+        console.log('Кнопка отмены создана:', undoButton);
+    }
+
+undoButton.addEventListener('click', undoLastMove);
+
+// Функция отмены
 function undoLastMove() {
   if (!canUndo || !lastRemovedPair) return;
 
@@ -311,8 +322,12 @@ function undoLastMove() {
   updateHints();
 
   canUndo = false;
+  lastRemovedPair = null;
   updateUndoButtonState();
 }
+// console.log('canUndo:', canUndo);
+// console.log('lastRemovedPair:', lastRemovedPair);
+
 
 // отката очков
 function calculateScore(num1, num2) {
@@ -322,20 +337,19 @@ function calculateScore(num1, num2) {
   return 0;
 }
 
-function updateUndoButtonState() {
-  document.getElementById('undo-btn').disabled = !canUndo;
+
+
+
+
 }
 
 
 
-
-
-}
 
 // Инициализация игры
 function initGame() {
 
-    grid = generateGrid();
+    grid = generateClassicGrid();
     score = 0;
     document.getElementById('score').textContent = score;
     renderGrid();
@@ -343,6 +357,19 @@ function initGame() {
 	// сброс таймера при новой игре	// 
 clearInterval(timerInterval)
 	  
+}
+
+
+// Обновление состояния кнопки
+function updateUndoButtonState() {
+  const btn = document.getElementById('undo-btn');
+  if (canUndo) {
+    btn.disabled = false;
+    btn.classList.remove('disabled');
+  } else {
+    btn.disabled = true;
+    btn.classList.add('disabled');
+  }
 }
 
 // Функция запуска игры
@@ -381,15 +408,57 @@ window.onload = () => {
 };
 
 
-// Генерация сетки с числами
-function generateGrid() {
-      const numbers = Array.from({length: GRID_SIZE * GRID_SIZE}, () => Math.floor(Math.random() * 9) + 1);
-      return numbers.reduce((acc, num, i) => {
-        if (i % GRID_SIZE === 0) acc.push([]);
-        acc[acc.length - 1].push(num);
-        return acc;
-      }, []);
+// Генерация сетки с числами Classic
+function generateClassicGrid() {
+    const grid = [];
+    
+    // Определяем базовый шаблон
+    const pattern = [
+        [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [1, 1, 1, 2, 1, 3, 1, 4, 1],
+        [5, 1, 6, 1, 7, 1, 8, 1, 9]
+    ];
+    
+    // Заполняем сетку, повторяя шаблон
+    for (let row = 0; row < GRID_SIZE; row++) {
+        const patternIndex = row % 3; // Определяем индекс строки шаблона
+        grid.push(pattern[patternIndex].slice()); // Копируем строку шаблона
     }
+    
+    return grid;
+}
+
+
+// Генерация сетки с числами Random
+function generateRandomGrid() {
+	
+    const grid = [];
+    const numbers = Array.from({length: 81}, (_, i) => i + 1);
+    
+    for (let row = 0; row < GRID_SIZE; row++) {
+        const newRow = [];
+        for (let col = 0; col < GRID_SIZE; col++) {
+            const randomIndex = Math.floor(Math.random() * numbers.length);
+            newRow.push(numbers.splice(randomIndex, 1)[0]);
+        }
+        grid.push(newRow);
+    }
+    return grid;
+}
+
+// Генерация сетки с числами Chaotic mode
+function generateChaoticGrid() {
+    const grid = [];
+    
+    for (let row = 0; row < GRID_SIZE; row++) {
+        const newRow = [];
+        for (let col = 0; col < GRID_SIZE; col++) {
+            newRow.push(Math.floor(Math.random() * 81) + 1);
+        }
+        grid.push(newRow);
+    }
+    return grid;
+}
 
 
 // Отрисовка сетки
@@ -549,14 +618,8 @@ function countValidPairs() {
       }
     }
   }
-
   return count.toString();
 }
-
-
-
-
-
 // Удаление пары ячеек
 function removePair(cell1, cell2) {
 lastRemovedPair = {
@@ -573,6 +636,7 @@ lastRemovedPair = {
   selectedCells = [];
   handlePairRemoval();
   updateHints();
+
   canUndo = true;
   updateUndoButtonState();
     }
@@ -658,15 +722,7 @@ function handlePairRemoval() {
     checkWin();
 }
 
-// Модифицируем removePair для вызова сохранения
-function removePair(cell1, cell2) {
-    grid[cell1.row][cell1.col] = null;
-    grid[cell2.row][cell2.col] = null;
-    renderGrid();
-    selectedCells = [];
-    handlePairRemoval();
-		updateHints();
-}
+
 
 // функцию для поиска подсказки
 function getHint() {

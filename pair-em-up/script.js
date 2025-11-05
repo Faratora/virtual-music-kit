@@ -115,60 +115,146 @@
         renderGrid();
         updateHints();
         }
-        // // Кнопка "Добавить строки" В createGameUI()
-        // const addRowsButton = document.createElement('button');
-        // addRowsButton.textContent = 'Добавить строки';
-        // addRowsButton.onclick = addClassicRows;
-        // gameContainer.appendChild(addRowsButton);
+        
+        // Обновление отображения
+        function renderGrid() {
+        const table = document.getElementById('game-grid');
+        table.innerHTML = '';
 
-// Обновление отображения
-function renderGrid() {
-  const table = document.getElementById('game-grid');
-  table.innerHTML = '';
-
-  for (let row = 0; row < grid.length; row++) {
-    const tr = document.createElement('tr');
-    for (let col = 0; col < grid[row].length; col++) {
-      const td = document.createElement('td');
-      td.textContent = grid[row][col];
-      tr.appendChild(td);
-    }
-    table.appendChild(tr);
-  }
-}
+        for (let row = 0; row < grid.length; row++) {
+            const tr = document.createElement('tr');
+            for (let col = 0; col < grid[row].length; col++) {
+            const td = document.createElement('td');
+            td.textContent = grid[row][col];
+            tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+        }
 
 
 
 
         // Генерация сетки с числами (Random mode)
         function generateRandomGrid() {
-            const grid = [];
-            const numbers = Array.from({length: 81}, (_, i) => i + 1);
-            
-            for (let row = 0; row < GRID_SIZE; row++) {
-                const newRow = [];
-                for (let col = 0; col < GRID_SIZE; col++) {
-                    const randomIndex = Math.floor(Math.random() * numbers.length);
-                    newRow.push(numbers.splice(randomIndex, 1)[0]);
-                }
-                grid.push(newRow);
-            }
-            return grid;
-        }
+    const numbers = Array.from({ length: GRID_SIZE * 3 }, (_, i) => {
+        return Math.floor(Math.random() * 9) + 1; // Генерируем числа от 1 до 9
+    });
+    // Перемешиваем
+    for (let i = numbers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+
+    // Формируем сетку для 3 строк
+    const grid = [];
+    for (let row = 0; row < 3; row++) { // Меняем условие на 3
+        const newRow = numbers.slice(row * GRID_SIZE, (row + 1) * GRID_SIZE);
+        grid.push(newRow);
+    }
+    return grid;
+}
+
+// Добавление строки из оставшихся чисел
+function addRandomRow() {
+    if (grid.length >= GRID_SIZE) return; // Ограничиваем количество строк
+
+    const remainingNumbers = grid.flat().filter(n => n !== 0);
+    
+    // Генерируем новую строку из чисел 1-9
+    const newRow = [];
+    for (let i = 0; i < GRID_SIZE; i++) {
+        newRow.push(Math.floor(Math.random() * 9) + 1);
+    }
+    
+    grid.push(newRow);
+    renderGrid();
+}
+
+
+
+
 
         // Генерация сетки с числами (Chaotic mode)
-        function generateChaoticGrid() {
-            const grid = [];
-            
-            for (let row = 0; row < GRID_SIZE; row++) {
-                const newRow = [];
-                for (let col = 0; col < GRID_SIZE; col++) {
-                    newRow.push(Math.floor(Math.random() * 81) + 1);
-                }
-                grid.push(newRow);
-            }
-            return grid;
+function generateChaoticGrid() {
+    const grid = [];
+    
+    // Генерируем только 3 строки
+    for (let row = 0; row < 3; row++) {
+        const newRow = [];
+        for (let col = 0; col < GRID_SIZE; col++) {
+            newRow.push(Math.floor(Math.random() * 9) + 1); // Числа от 1 до 9
         }
+        grid.push(newRow);
+    }
+    return grid;
+}
+
+// Добавление строки в хаотичном режиме
+function addChaoticRow() {
+    if (grid.length >= GRID_SIZE) return; // Ограничиваем количество строк
+
+    // Считаем количество оставшихся цифр
+    const remainingCount = grid.flat().filter(n => n !== 0).length;
+    
+    // Генерируем новое количество цифр равное оставшимся
+    const newRow = [];
+    for (let i = 0; i < remainingCount; i++) {
+        newRow.push(Math.floor(Math.random() * 9) + 1);
+    }
+    
+    // Дополняем строку нулями до размера GRID_SIZE
+    while (newRow.length < GRID_SIZE) {
+        newRow.push(0);
+    }
+    
+    grid.push(newRow);
+    renderGrid();
+}
+
+// Модифицируем функцию запуска игры
+function startGame(selectedMode) {
+    mode = selectedMode;
+    selectedCells = [];
+    score = 0;
+    updateScore();
+    stopTimer();
+    startTimer();
+
+    // Удаляем кнопку, если она уже есть
+    const existingAddButton = document.getElementById('add-rows-button');
+    if (existingAddButton) {
+        existingAddButton.remove();
+    }
+
+    switch (mode) {
+        case 'classic':
+            grid = generateClassicGrid();
+            renderGrid();
+            startTimer();
+            break;
+
+        case 'random':
+            grid = generateRandomGrid();
+            renderGrid();
+            startTimer();
+            break;
+
+        case 'chaotic':
+            grid = generateChaoticGrid(); // Теперь генерирует только 3 строки
+            renderGrid();
+            startTimer();
+
+            // Добавляем кнопку для хаотичного режима
+            const addChaoticButton = document.createElement('button');
+            addChaoticButton.id = 'add-chaotic-button';
+            addChaoticButton.textContent = 'Добавить хаотичную строку';
+            addChaoticButton.onclick = addChaoticRow;
+            gameContainer.appendChild(addChaoticButton);
+            break;
+    }
+}
+
 
         // Отрисовка сетки
         function renderGrid() {
@@ -264,7 +350,7 @@ function renderGrid() {
             renderGrid();
             startTimer();
 
-            // Создаем и добавляем кнопку "Добавить строки"
+             // Добавляем кнопку для классического режима
             const addRowsButton = document.createElement('button');
             addRowsButton.id = 'add-rows-button';
             addRowsButton.textContent = 'Добавить строки';
@@ -274,9 +360,16 @@ function renderGrid() {
 
         case 'random':
             grid = generateRandomGrid();
-            renderGrid();
-            startTimer();
+    renderGrid();
+    startTimer();
+// Добавляем кнопку для случайного режима
+            const addRandomButton = document.createElement('button');
+            addRandomButton.id = 'add-random-button';
+            addRandomButton.textContent = 'Добавить случайную строку';
+            addRandomButton.onclick = addRandomRow;
+            gameContainer.appendChild(addRandomButton);
             break;
+    
 
         case 'chaotic':
             grid = generateChaoticGrid();

@@ -180,36 +180,39 @@ function createGameElements() {
   }
   // Таймер игры
 
-  if (timerDisplay === undefined) {
+  if (!timerDisplay) {
     timerDisplay = document.createElement("div");
     timerDisplay.id = "timer-display";
 
     gameInfoContainer.appendChild(timerDisplay);
   }
   timerDisplay.textContent = "Time: 00:00";
+
+  createRevertButton();
 }
-// ------------------------------------------------------
 // Функция для создания и настройки кнопки Revert
 function createRevertButton() {
-  // Создаём элемент кнопки
-  revertButton = document.createElement("button");
+  if (!revertButton) {
+    // Создаём элемент кнопки
+    revertButton = document.createElement("button");
 
-  // Настраиваем свойства кнопки
-  revertButton.id = "revert-btn";
-  revertButton.textContent = "Revert";
+    // Настраиваем свойства кнопки
+    revertButton.id = "revert-btn";
+    revertButton.textContent = "Revert";
 
-  // Добавляем необходимые классы стилей
-  revertButton.classList.add("disabled"); // базовый класс отключения
-  revertButton.classList.add("revert-btn-inactive"); // визуальный стиль
+    // Добавляем класс визуального неактивного состояния
+    // revertButton.classList.add("disabled"); // базовый класс отключения
+    revertButton.classList.add("revert-btn-inactive"); // визуальный стиль
 
-  // Логически отключаем кнопку
-  revertButton.disabled = true;
+    // Логически отключаем кнопку
+    // revertButton.disabled = true;
 
-  // Добавляем обработчик клика
-  revertButton.addEventListener("click", undoLastMove);
+    // Добавляем обработчик клика
+    revertButton.addEventListener("click", undoLastMove);
 
-  // Добавляем кнопку в контейнер
-  gameInfoContainer.appendChild(revertButton);
+    // Добавляем кнопку в контейнер
+    gameInfoContainer.appendChild(revertButton);
+  }
 
   // Возвращаем созданную кнопку для дальнейшего использования
   return revertButton;
@@ -218,13 +221,16 @@ function createRevertButton() {
 // Функция обновления состояния кнопки
 function updateUndoButtonState() {
   if (canUndo) {
-    revertButton.disabled = false;
-    revertButton.classList.remove("disabled");
+    // Активируем кнопку
+    // revertButton.disabled = false;
+    // revertButton.classList.remove("disabled");
     revertButton.classList.remove("revert-btn-inactive");
     revertButton.classList.add("revert-btn-active");
   } else {
-    revertButton.disabled = true;
-    revertButton.classList.add("disabled");
+    // Деактивируем кнопку
+    // revertButton.disabled = true;
+    // revertButton.classList.add("disabled");
+    revertButton.classList.remove("revert-btn-active");
     revertButton.classList.add("revert-btn-inactive");
   }
 }
@@ -269,7 +275,7 @@ function startGame(selectedMode) {
       grid = generateClassicGrid();
       // Создаем кнопки управления
 
-      renderGrid();      
+      renderGrid();
       // createControlButtons();
       // stopTimer();
       // startTimer();
@@ -483,7 +489,7 @@ function handleClick(cell, col, row) {
 
   if (selectedCells.length === 2) {
     checkPair();
-    checkWin();
+    // checkWin();
   }
   updateHints();
 }
@@ -594,6 +600,14 @@ function checkPair() {
   }
 }
 
+// Очистка выделения
+function clearSelection() {
+  // selectedCells = [];
+  renderGrid();
+  updateHints();
+}
+
+
 // Функция проверки пары ячеек
 function checkPair() {
   const [cell1, cell2] = selectedCells;
@@ -609,7 +623,7 @@ function checkPair() {
 
     removePair(cell1, cell2);
     updateScore(num1, num2);
-    checkWin();
+    // checkWin();
   } else {
     alert("The wrong pair!");
     clearSelection();

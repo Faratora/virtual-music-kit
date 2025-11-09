@@ -422,6 +422,17 @@ function handleClick(cell, col, row) {
 }
 
 
+function updateHints() {
+  if (!grid || grid.length === 0) return;
+
+  try {
+    const hintCount = countValidPairs();
+    document.getElementById("hint-display").textContent = `Hints: ${hintCount}`;
+  } catch (error) {
+    console.error("Ошибка при обновлении хинтов:", error);
+  }
+}
+
 
 //     // Панель управления
 //     const gameControls = document.createElement("div");

@@ -29,7 +29,7 @@ let resultButton;
 let resetButton;
 let undoButton;
 let settingsBtn;
-let revertButton
+let revertButton;
 let gameFieldContainer;
 let gameInfoContainer;
 let addChaoticButton;
@@ -88,29 +88,29 @@ function InitializationElements() {}
 // Функция создания элементов игрового поля'
 function createGameElements() {
   // Создаём общий контейнер для игры
-   if (gameContainer=== undefined) {
-  gameContainer = document.createElement("div");
-  gameContainer.id = "game-container";
-  document.body.appendChild(gameContainer);
-   }
+  if (gameContainer === undefined) {
+    gameContainer = document.createElement("div");
+    gameContainer.id = "game-container";
+    document.body.appendChild(gameContainer);
+  }
   // Создаём контейнер для игрового поля
-   if (gameFieldContainer === undefined) {
-  gameFieldContainer = document.createElement("div");
-  gameFieldContainer.id = "game-field-container";
-  gameContainer.appendChild(gameFieldContainer);
-   }
+  if (gameFieldContainer === undefined) {
+    gameFieldContainer = document.createElement("div");
+    gameFieldContainer.id = "game-field-container";
+    gameContainer.appendChild(gameFieldContainer);
+  }
   // Создаем Игровое поле
   gameGrid = document.createElement("table");
   gameGrid.id = "game-grid";
   gameFieldContainer.appendChild(gameGrid);
 
   // Создаём контейнер для игровой информации
-  if (gameInfoContainer=== undefined) {
-  gameInfoContainer = document.createElement("div");
-  gameInfoContainer.id = "game-info-container";
-  gameContainer.appendChild(gameInfoContainer);
+  if (gameInfoContainer === undefined) {
+    gameInfoContainer = document.createElement("div");
+    gameInfoContainer.id = "game-info-container";
+    gameContainer.appendChild(gameInfoContainer);
   }
-  // Создаем элементы для счета и таймера с проверкой 
+  // Создаем элементы для счета и таймера с проверкой
   if (scoreDisplay === undefined) {
     scoreDisplay = document.createElement("span");
     scoreDisplay.id = "score-display";
@@ -144,37 +144,39 @@ function createGameElements() {
 
   // Кнопка Results
   if (resultButton === undefined) {
-  resultButton = document.createElement("button");
-  resultButton.id = "results-panel";
-  resultButton.textContent = "Results";
-  // resultButton.onclick = showResults;
-  gameInfoContainer.appendChild(resultButton);
+    resultButton = document.createElement("button");
+    resultButton.id = "results-panel";
+    resultButton.textContent = "Results";
+    // resultButton.onclick = showResults;
+    gameInfoContainer.appendChild(resultButton);
   }
   // Кнопка Reset
   if (resetButton === undefined) {
-  resetButton = document.createElement("button");
-  resetButton.id = "reset-btn";
-  resetButton.textContent = "Reset";
-  // resetButton.onclick = resetGame;
-  gameInfoContainer.appendChild(resetButton);
-}
-  // Кнопка "Revert"
-  if (resetButton === undefined) {
-  revertButton = document.createElement("button");
-  revertButton.id = "revert-btn";
-  revertButton.textContent = "Revert";
+    resetButton = document.createElement("button");
+    resetButton.id = "reset-btn";
+    resetButton.textContent = "Reset";
+    // resetButton.onclick = resetGame;
+    gameInfoContainer.appendChild(resetButton);
+  }
+  // // Кнопка "Revert"
+  // // if (resetButton === undefined) {
+  // revertButton = document.createElement("button");
+  // revertButton.id = "revert-btn";
+  // revertButton.textContent = "Revert";
+  // gameInfoContainer.appendChild(revertButton);
   // revertButton.classList.add("disabled"); // визуально отключена
   // revertButton.disabled = true; // логически отключена
-  gameInfoContainer.appendChild(revertButton);
+  // revertButton.classList.add("revert-btn-inactive")
+  // gameInfoContainer.appendChild(revertButton);
   // revertButton.addEventListener("click", undoLastMove);
-  }
+  // // }
   // Кнопка setting
   if (settingsBtn === undefined) {
-  settingsBtn = document.createElement("button");
-  settingsBtn.id = "setting";
-  settingsBtn.textContent = "Settings";
-  // settingsBtn.onclick = () => alert("Open settings panel");
-  gameInfoContainer.appendChild(settingsBtn);
+    settingsBtn = document.createElement("button");
+    settingsBtn.id = "setting";
+    settingsBtn.textContent = "Settings";
+    // settingsBtn.onclick = () => alert("Open settings panel");
+    gameInfoContainer.appendChild(settingsBtn);
   }
   // Таймер игры
 
@@ -185,6 +187,72 @@ function createGameElements() {
     gameInfoContainer.appendChild(timerDisplay);
   }
   timerDisplay.textContent = "Time: 00:00";
+}
+// ------------------------------------------------------
+// Функция для создания и настройки кнопки Revert
+function createRevertButton() {
+  // Создаём элемент кнопки
+  revertButton = document.createElement("button");
+
+  // Настраиваем свойства кнопки
+  revertButton.id = "revert-btn";
+  revertButton.textContent = "Revert";
+
+  // Добавляем необходимые классы стилей
+  revertButton.classList.add("disabled"); // базовый класс отключения
+  revertButton.classList.add("revert-btn-inactive"); // визуальный стиль
+
+  // Логически отключаем кнопку
+  revertButton.disabled = true;
+
+  // Добавляем обработчик клика
+  revertButton.addEventListener("click", undoLastMove);
+
+  // Добавляем кнопку в контейнер
+  gameInfoContainer.appendChild(revertButton);
+
+  // Возвращаем созданную кнопку для дальнейшего использования
+  return revertButton;
+}
+
+// Функция обновления состояния кнопки
+function updateUndoButtonState() {
+  if (canUndo) {
+    revertButton.disabled = false;
+    revertButton.classList.remove("disabled");
+    revertButton.classList.remove("revert-btn-inactive");
+    revertButton.classList.add("revert-btn-active");
+  } else {
+    revertButton.disabled = true;
+    revertButton.classList.add("disabled");
+    revertButton.classList.add("revert-btn-inactive");
+  }
+}
+
+// -------------------------------------------------------------
+// Функция таймера
+function startTimer() {
+  if (isTimerRunning) return;
+
+  if (!timerDisplay) {
+    console.error("timerDisplay не найден");
+    return;
+  }
+
+  startTime = Date.now();
+  isTimerRunning = true;
+
+  timerInterval = setInterval(() => {
+    if (!timerDisplay) return; // Дополнительная проверка
+
+    const elapsed = Date.now() - startTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+    timerDisplay.textContent = `Time: ${String(minutes).padStart(
+      2,
+      "0"
+    )}:${String(seconds).padStart(2, "0")}`;
+  }, 1000);
 }
 
 // Функция запуска игры
@@ -201,17 +269,18 @@ function startGame(selectedMode) {
       grid = generateClassicGrid();
       // Создаем кнопки управления
 
-      renderGrid();
+      renderGrid();      
       // createControlButtons();
       // stopTimer();
       // startTimer();
-if (addRowsButton === undefined) {
-      addRowsButton = document.createElement("button");
-      addRowsButton.id = "add-rows-button";
-      addRowsButton.textContent = "Добавить строки";
-      addRowsButton.onclick = addClassicRows;
-      gameInfoContainer.appendChild(addRowsButton);
-}
+
+      if (addRowsButton === undefined) {
+        addRowsButton = document.createElement("button");
+        addRowsButton.id = "add-rows-button";
+        addRowsButton.textContent = "Добавить строки";
+        addRowsButton.onclick = addClassicRows;
+        gameInfoContainer.appendChild(addRowsButton);
+      }
       break;
 
     case "random":
@@ -220,13 +289,13 @@ if (addRowsButton === undefined) {
       renderGrid();
       // stopTimer();
       // startTimer();
-if (addRandomButton === undefined) {
-      addRandomButton = document.createElement("button");
-      addRandomButton.id = "add-random-button";
-      addRandomButton.textContent = "Добавить случайную строку";
-      addRandomButton.onclick = addRandomRow;
-      gameInfoContainer.appendChild(addRandomButton);
-}
+      if (addRandomButton === undefined) {
+        addRandomButton = document.createElement("button");
+        addRandomButton.id = "add-random-button";
+        addRandomButton.textContent = "Добавить случайную строку";
+        addRandomButton.onclick = addRandomRow;
+        gameInfoContainer.appendChild(addRandomButton);
+      }
       break;
 
     case "chaotic":
@@ -237,13 +306,13 @@ if (addRandomButton === undefined) {
       // startTimer();
 
       // AddRowAddingButton("add-chaotic-button", "Добавить хаотичную строку", addChaoticRow);
-if (addChaoticButton === undefined) {
-      addChaoticButton = document.createElement("button");
-      addChaoticButton.id = "add-chaotic-button";
-      addChaoticButton.textContent = "Добавить хаотичную строку";
-      addChaoticButton.onclick = addChaoticRow;
-      gameInfoContainer.appendChild(addChaoticButton);
-}
+      if (addChaoticButton === undefined) {
+        addChaoticButton = document.createElement("button");
+        addChaoticButton.id = "add-chaotic-button";
+        addChaoticButton.textContent = "Добавить хаотичную строку";
+        addChaoticButton.onclick = addChaoticRow;
+        gameInfoContainer.appendChild(addChaoticButton);
+      }
       break;
   }
 
@@ -393,8 +462,6 @@ function generateChaoticGrid() {
   );
 }
 
-
-
 function handleClick(cell, col, row) {
   if (selectedCells.length === 2) return;
 
@@ -421,6 +488,185 @@ function handleClick(cell, col, row) {
   updateHints();
 }
 
+// Проверка смежности ячеек
+function isAdjacent(cell1, cell2) {
+  const rowDiff = Math.abs(cell1.row - cell2.row);
+  const colDiff = Math.abs(cell1.col - cell2.col);
+
+  // Проверка на смежность по горизонтали или вертикали
+  if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+    return true;
+  }
+}
+
+// // Обновление состояния кнопки
+// function updateUndoButtonState() {
+//   const btn = document.getElementById("revert-btn");
+//   if (!revertButton){}
+//   if (canUndo) {
+//     btn.disabled = false;
+//     btn.classList.remove("disabled");
+//   } else {
+//     btn.disabled = true;
+//     btn.classList.add("disabled");
+//   }
+// }
+
+// Функция обновления состояния кнопки
+function updateUndoButtonState() {
+  if (!revertButton) {
+    createRevertButton();
+    return;
+  }
+  if (canUndo) {
+    revertButton.disabled = false;
+    revertButton.classList.remove("disabled");
+    revertButton.classList.remove("revert-btn-inactive");
+    revertButton.classList.add("revert-btn-active");
+  } else {
+    revertButton.disabled = true;
+    revertButton.classList.add("disabled");
+    revertButton.classList.add("revert-btn-inactive");
+  }
+}
+
+// Проверка валидности пары
+function isValidPair(num1, num2) {
+  return num1 === num2 || num1 + num2 === 10;
+}
+// Обновление Score
+function updateScore(num1, num2) {
+  let points = 0;
+
+  if (num1 === undefined || num2 === undefined) {
+    return;
+  }
+
+  if (num1 === 5 && num2 === 5) {
+    points = 3;
+  } else if (num1 === num2) {
+    points = 1;
+  } else if (num1 + num2 === 10) {
+    points = 2;
+  }
+
+  score += points;
+  document.getElementById(
+    "score-display"
+  ).textContent = `Score: ${score}/${TARGET_SCORE}`;
+}
+
+// Удаление пары ячеек
+function removePair(cell1, cell2) {
+  lastRemovedPair = {
+    cell1,
+    cell2,
+    num1: grid[cell1.row][cell1.col],
+    num2: grid[cell2.row][cell2.col],
+  };
+
+  grid[cell1.row][cell1.col] = null;
+  grid[cell2.row][cell2.col] = null;
+  renderGrid();
+  selectedCells = [];
+  // handlePairRemoval();
+  updateHints();
+
+  canUndo = true;
+  updateUndoButtonState();
+}
+
+function checkPair() {
+  const [cell1, cell2] = selectedCells;
+  const num1 = grid[cell1.row][cell1.col];
+  const num2 = grid[cell2.row][cell2.col];
+
+  console.log("Проверяем пару:", num1, num2);
+  console.log("Смежные:", isAdjacent(cell1, cell2));
+  console.log("Валидная пара:", isValidPair(num1, num2));
+
+  if (isAdjacent(cell1, cell2) && isValidPair(num1, num2)) {
+    removePair(cell1, cell2);
+    updateScore(num1, num2);
+  } else {
+    alert("Неверная пара!");
+    clearSelection();
+  }
+}
+
+// Функция проверки пары ячеек
+function checkPair() {
+  const [cell1, cell2] = selectedCells;
+  const num1 = grid[cell1.row][cell1.col];
+  const num2 = grid[cell2.row][cell2.col];
+
+  if (isAdjacent(cell1, cell2) && isValidPair(num1, num2)) {
+    // Запускаем таймер только при первом успешном клике
+    if (firstClick) {
+      startTimer();
+      firstClick = false;
+    }
+
+    removePair(cell1, cell2);
+    updateScore(num1, num2);
+    checkWin();
+  } else {
+    alert("The wrong pair!");
+    clearSelection();
+  }
+}
+
+// Результаты
+function countValidPairs() {
+  if (!grid || grid.length === 0) return "0";
+
+  const COLS = 9;
+  const rows = grid.length;
+  let count = 0;
+  const visited = new Set();
+
+  function checkDirection(row, col, dRow, dCol) {
+    const num = grid[row][col];
+    let r = row + dRow;
+    let c = col + dCol;
+
+    while (r >= 0 && r < rows && c >= 0 && c < COLS) {
+      const target = grid[r][c];
+      if (target === null) {
+        r += dRow;
+        c += dCol;
+        continue;
+      }
+
+      const key = [row, col, r, c].sort((a, b) => a - b).join(",");
+      if (visited.has(key)) break;
+
+      const isSame = num === target;
+      const isSum10 = num + target === 10;
+
+      if (isSame || isSum10) {
+        visited.add(key);
+        count++;
+      }
+      break;
+    }
+  }
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const num = grid[row]?.[col];
+      if (num === null || num === undefined) continue;
+
+      // Проверяем вправо и вниз
+      checkDirection(row, col, 0, 1); // →
+      checkDirection(row, col, 1, 0); // ↓
+
+      if (count >= 5) return "5+";
+    }
+  }
+
+  return count.toString();
+}
 
 function updateHints() {
   if (!grid || grid.length === 0) return;
@@ -433,6 +679,25 @@ function updateHints() {
   }
 }
 
+// Функция отмены Revert
+function undoLastMove() {
+  if (!canUndo || !lastRemovedPair) return;
+
+  const { cell1, cell2, num1, num2 } = lastRemovedPair;
+
+  grid[cell1.row][cell1.col] = num1;
+  grid[cell2.row][cell2.col] = num2;
+
+  score -= updateScore(num1, num2);
+  scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+
+  renderGrid();
+  updateHints();
+
+  canUndo = false;
+  lastRemovedPair = null;
+  updateUndoButtonState();
+}
 
 //     // Панель управления
 //     const gameControls = document.createElement("div");

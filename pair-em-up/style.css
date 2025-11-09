@@ -376,3 +376,19 @@ button {
 #game-info div {
     text-align: left; /* Выравнивание текста по левому краю */
 }
+.revert-btn-active {
+    background-color: #1e90ff; /* синий */
+    color: white;
+    cursor: pointer;
+}
+
+.revert-btn-inactive {
+    background-color: #cccccc; /* серый */
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.disabled {
+    opacity: 0.7;
+    pointer-events: none;
+}

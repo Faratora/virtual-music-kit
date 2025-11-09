@@ -2,8 +2,6 @@
 let gameContainer;
 let showHint;
 
-
-
 let hintDisplay;
 let timerDisplay;
 const TARGET_SCORE = 100; // Целевой счёт для победы
@@ -12,14 +10,12 @@ let score = 0; // Текущий счёт
 let scoreDisplay;
 let startTime;
 
-
 const GRID_SIZE = 9;
 let grid = []; // Матрица чисел
 let loadingIndicator;
 let timer = 0;
 let timerInterval;
 let isTimerRunning = false;
-
 
 let firstClick = true;
 let lastRemovedPair = null;
@@ -33,143 +29,162 @@ let resultButton;
 let resetButton;
 let undoButton;
 let settingsBtn;
-
-
+let revertButton
+let gameFieldContainer;
+let gameInfoContainer;
+let addChaoticButton;
+let addRandomButton;
+let addRowsButton;
 
 // Функция создания UI элементов
 function createUIElements() {
-    // Создаем основной контейнер
-    let uiContainer = document.createElement("div");
-    uiContainer.id = "ui-container";
-    document.body.appendChild(uiContainer);
+  // Создаем основной контейнер
+  let uiContainer = document.createElement("div");
+  uiContainer.id = "ui-container";
+  document.body.appendChild(uiContainer);
 
-    // Создаем заголовок и информацию об авторе
-    const header = document.createElement("div");
-    header.id = "header";
-    uiContainer.appendChild(header); // Добавляем в uiContainer
+  // Создаем заголовок и информацию об авторе
+  const header = document.createElement("div");
+  header.id = "header";
+  uiContainer.appendChild(header); // Добавляем в uiContainer
 
-    const title = document.createElement("h1");
-    title.textContent = "Pair 'em Up";
-    header.appendChild(title);
+  const title = document.createElement("h1");
+  title.textContent = "Pair 'em Up";
+  header.appendChild(title);
 
-    const author = document.createElement("a");
-    author.href = "https://github.com/faratora";
-    author.target = "_blank";
+  const author = document.createElement("a");
+  author.href = "https://github.com/faratora";
+  author.target = "_blank";
 
-    const githubLogo = document.createElement("img");
-    githubLogo.src = "images/Logo-gitHub.png";
-    githubLogo.alt = "GitHub";
-    githubLogo.width = 20;
-    githubLogo.height = 20;
-    // githubLogo.style.marginLeft = "5px";
+  const githubLogo = document.createElement("img");
+  githubLogo.src = "images/Logo-gitHub.png";
+  githubLogo.alt = "GitHub";
+  githubLogo.width = 20;
+  githubLogo.height = 20;
+  // githubLogo.style.marginLeft = "5px";
 
-    const text = document.createTextNode(" faratora");
-    author.appendChild(githubLogo);
-    author.appendChild(text);
-    header.appendChild(author);
+  const text = document.createTextNode(" faratora");
+  author.appendChild(githubLogo);
+  author.appendChild(text);
+  header.appendChild(author);
 
-    // Кнопки режимов
-    const modes = ["classic", "random", "chaotic"];
-    modes.forEach((mode) => {
+  // Кнопки режимов
+  const modes = ["classic", "random", "chaotic"];
+  modes.forEach((mode) => {
     const button = document.createElement("button");
     button.id = `mode-${mode}`;
     button.textContent = mode.charAt(0).toUpperCase() + mode.slice(1) + " mode";
     button.addEventListener("click", () => startGame(mode));
     uiContainer.appendChild(button);
-});
+  });
 }
 // Инициализация
-window.addEventListener('DOMContentLoaded', () => {
-    createUIElements();
+window.addEventListener("DOMContentLoaded", () => {
+  createUIElements();
 });
 
-
-function InitializationElements(){}
+function InitializationElements() {}
 
 // Функция создания элементов игрового поля'
 function createGameElements() {
   // Создаём общий контейнер для игры
+   if (gameContainer=== undefined) {
   gameContainer = document.createElement("div");
   gameContainer.id = "game-container";
   document.body.appendChild(gameContainer);
-
+   }
   // Создаём контейнер для игрового поля
+   if (gameFieldContainer === undefined) {
   gameFieldContainer = document.createElement("div");
   gameFieldContainer.id = "game-field-container";
   gameContainer.appendChild(gameFieldContainer);
-
+   }
   // Создаем Игровое поле
   gameGrid = document.createElement("table");
   gameGrid.id = "game-grid";
   gameFieldContainer.appendChild(gameGrid);
 
   // Создаём контейнер для игровой информации
+  if (gameInfoContainer=== undefined) {
   gameInfoContainer = document.createElement("div");
   gameInfoContainer.id = "game-info-container";
   gameContainer.appendChild(gameInfoContainer);
+  }
+  // Создаем элементы для счета и таймера с проверкой 
+  if (scoreDisplay === undefined) {
+    scoreDisplay = document.createElement("span");
+    scoreDisplay.id = "score-display";
+    gameInfoContainer.appendChild(scoreDisplay);
+  }
 
-  // Создаем элементы для счета и таймера
-  scoreDisplay = document.createElement("span");
-  scoreDisplay.id = "score-display";
   scoreDisplay.textContent = `Score: 0/${TARGET_SCORE}`;
-  gameInfoContainer.appendChild(scoreDisplay);
 
-// Создаем элементы таймера
-  let timerDisplay = document.createElement("div");
-  timerDisplay.id = "timer-display";
-  gameInfoContainer.appendChild(timerDisplay);
-
+  // Создаем элементы таймера
+  if (timerDisplay === undefined) {
+    let timerDisplay = document.createElement("div");
+    timerDisplay.id = "timer-display";
+    gameInfoContainer.appendChild(timerDisplay);
+  }
   // Кнопка подсказки
-  const hintButton = document.createElement("button");
-  hintButton.id = "hint-btn";
-  hintButton.textContent = "Hints";
-  hintButton.onclick = showHint;
-  gameInfoContainer.appendChild(hintButton);
+  if (hintButton === undefined) {
+    hintButton = document.createElement("button");
+    hintButton.id = "hint-btn";
+    hintButton.textContent = "Hints";
+    hintButton.onclick = showHint;
+    gameInfoContainer.appendChild(hintButton);
+  }
 
-  // Экран вывода подсказки
-  const hintDisplay = document.createElement("div");
-  hintDisplay.id = "hint-display";
-  hintDisplay.textContent = "Hints: 0";
-  gameInfoContainer.appendChild(hintDisplay);
+  if (hintDisplay === undefined) {
+    // Экран вывода подсказки
+    hintDisplay = document.createElement("div");
+    hintDisplay.id = "hint-display";
+    hintDisplay.textContent = "Hints: 0";
+    gameInfoContainer.appendChild(hintDisplay);
+  }
 
   // Кнопка Results
-  const resultButton = document.createElement("button");
+  if (resultButton === undefined) {
+  resultButton = document.createElement("button");
   resultButton.id = "results-panel";
   resultButton.textContent = "Results";
   // resultButton.onclick = showResults;
   gameInfoContainer.appendChild(resultButton);
-
+  }
   // Кнопка Reset
-  const resetButton = document.createElement("button");
+  if (resetButton === undefined) {
+  resetButton = document.createElement("button");
   resetButton.id = "reset-btn";
   resetButton.textContent = "Reset";
   // resetButton.onclick = resetGame;
   gameInfoContainer.appendChild(resetButton);
-
+}
   // Кнопка "Revert"
-  const revertButton = document.createElement("button");
+  if (resetButton === undefined) {
+  revertButton = document.createElement("button");
   revertButton.id = "revert-btn";
   revertButton.textContent = "Revert";
   // revertButton.classList.add("disabled"); // визуально отключена
   // revertButton.disabled = true; // логически отключена
   gameInfoContainer.appendChild(revertButton);
   // revertButton.addEventListener("click", undoLastMove);
-
+  }
   // Кнопка setting
-  const settingsBtn = document.createElement("button");
+  if (settingsBtn === undefined) {
+  settingsBtn = document.createElement("button");
   settingsBtn.id = "setting";
   settingsBtn.textContent = "Settings";
   // settingsBtn.onclick = () => alert("Open settings panel");
   gameInfoContainer.appendChild(settingsBtn);
-
+  }
   // Таймер игры
-  timerDisplay = document.createElement("div");
-  timerDisplay.id = "timer-display";
+
+  if (timerDisplay === undefined) {
+    timerDisplay = document.createElement("div");
+    timerDisplay.id = "timer-display";
+
+    gameInfoContainer.appendChild(timerDisplay);
+  }
   timerDisplay.textContent = "Time: 00:00";
-  gameInfoContainer.appendChild(timerDisplay);
-
-
-
 }
 
 // Функция запуска игры
@@ -178,9 +193,9 @@ function startGame(selectedMode) {
   selectedCells = [];
   score = 0;
 
-  createGameElements();  
-  
-    // Генерируем сетку в зависимости от режима
+  createGameElements();
+
+  // Генерируем сетку в зависимости от режима
   switch (mode) {
     case "classic":
       grid = generateClassicGrid();
@@ -190,12 +205,13 @@ function startGame(selectedMode) {
       // createControlButtons();
       // stopTimer();
       // startTimer();
-
-      const addRowsButton = document.createElement("button");
+if (addRowsButton === undefined) {
+      addRowsButton = document.createElement("button");
       addRowsButton.id = "add-rows-button";
       addRowsButton.textContent = "Добавить строки";
       addRowsButton.onclick = addClassicRows;
       gameInfoContainer.appendChild(addRowsButton);
+}
       break;
 
     case "random":
@@ -204,12 +220,13 @@ function startGame(selectedMode) {
       renderGrid();
       // stopTimer();
       // startTimer();
-
-      const addRandomButton = document.createElement("button");
+if (addRandomButton === undefined) {
+      addRandomButton = document.createElement("button");
       addRandomButton.id = "add-random-button";
       addRandomButton.textContent = "Добавить случайную строку";
       addRandomButton.onclick = addRandomRow;
       gameInfoContainer.appendChild(addRandomButton);
+}
       break;
 
     case "chaotic":
@@ -220,12 +237,13 @@ function startGame(selectedMode) {
       // startTimer();
 
       // AddRowAddingButton("add-chaotic-button", "Добавить хаотичную строку", addChaoticRow);
-
-      const addChaoticButton = document.createElement("button");
+if (addChaoticButton === undefined) {
+      addChaoticButton = document.createElement("button");
       addChaoticButton.id = "add-chaotic-button";
       addChaoticButton.textContent = "Добавить хаотичную строку";
       addChaoticButton.onclick = addChaoticRow;
       gameInfoContainer.appendChild(addChaoticButton);
+}
       break;
   }
 
@@ -239,13 +257,7 @@ function startGame(selectedMode) {
   document
     .getElementById("mode-chaotic")
     .addEventListener("click", () => startGame("chaotic"));
-
-
-
-
 }
-
-
 
 // function AddRowAddingButton(id, text, event){
 //       const button = document.createElement("button");
@@ -383,6 +395,32 @@ function generateChaoticGrid() {
 
 
 
+function handleClick(cell, col, row) {
+  if (selectedCells.length === 2) return;
+
+  const cellIndex = { row, col };
+
+  const alreadySelected = selectedCells.some(
+    (idx) => idx.row === cellIndex.row && idx.col === cellIndex.col
+  );
+
+  if (alreadySelected) {
+    selectedCells = selectedCells.filter(
+      (idx) => !(idx.row === cellIndex.row && idx.col === cellIndex.col)
+    );
+    cell.classList.remove("selected");
+  } else {
+    selectedCells.push(cellIndex);
+    cell.classList.add("selected");
+  }
+
+  if (selectedCells.length === 2) {
+    checkPair();
+    checkWin();
+  }
+  updateHints();
+}
+
 
 
 //     // Панель управления
@@ -465,9 +503,6 @@ function generateChaoticGrid() {
 //     uiContainer.id = 'ui-container';
 //     document.body.appendChild(uiContainer);
 
-    
-
-
 //     // Инициализируем отображение начального счета
 //     updateScoreDisplay();
 // }
@@ -496,8 +531,6 @@ function generateChaoticGrid() {
 //         return;
 //     }
 
-
-
 //     // Останавливаем таймер
 //     stopTimer();
 //     // Очищаем выбранные ячейки
@@ -515,7 +548,7 @@ function generateChaoticGrid() {
 //     initGame();
 //     startGame(currentMode);
 //     startTimer();
-    
+
 //     // Генерируем новую сетку
 //     switch (currentMode) {
 //         case "classic":
@@ -530,8 +563,7 @@ function generateChaoticGrid() {
 //         default:
 //             console.error("Неизвестный режим игры!");
 //             return;
-//     }   
-
+//     }
 
 // }
 
@@ -539,7 +571,7 @@ function generateChaoticGrid() {
 // function initGame() {
 //     // Создаем UI элементы
 //     createUIElements();
-    
+
 //     // Инициализируем остальные компоненты
 //     initGrid();
 //     createControlButtons();
@@ -562,11 +594,9 @@ function generateChaoticGrid() {
 //     startTime = Date.now();
 //     isTimerRunning = true;
 
-    
-
 //  timerInterval = setInterval(() => {
 //         if (!timerDisplay) return; // Дополнительная проверка
-        
+
 //         const elapsed = Date.now() - startTime;
 //         const minutes = Math.floor(elapsed / 60000);
 //         const seconds = Math.floor((elapsed % 60000) / 1000);
@@ -595,17 +625,17 @@ function generateChaoticGrid() {
 
 //     // Останавливаем таймер
 //     stopTimer();
-    
+
 //     // Очищаем выбранные ячейки
 //     selectedCells = [];
-    
+
 //     // Сбрасываем счёт
 //     score = 0;
 //     updateScoreDisplay();
-    
+
 //     // Обновляем таймер
 //     updateTimerDisplay();
-    
+
 //     // Остальные действия сброса
 //     lastRemovedPair = null;
 //     canUndo = false;
@@ -616,7 +646,7 @@ function generateChaoticGrid() {
 //     initGame();
 //     startGame(currentMode);
 //     startTimer();
-    
+
 //     // Генерируем новую сетку
 //     switch (currentMode) {
 //         case "classic":
@@ -633,24 +663,22 @@ function generateChaoticGrid() {
 //             return;
 //     }
 // }
-// // Функция 
+// // Функция
 // function initGame() {
 //     // Создаем UI элементы
 //     createUIElements();
-    
+
 //     // Проверяем успешность создания UI
 //     if (!scoreDisplay || !timerDisplay) {
 //         console.error('Ошибка инициализации UI');
 //         return;
 //     }
-    
+
 //     // Инициализируем остальные компоненты
 //     initGrid();
 //     createControlButtons();
 //     // Другие инициализации...
 // }
-
-
 
 // //------------------------------------------------------------------------------
 
@@ -720,9 +748,6 @@ function generateChaoticGrid() {
 //   timerDisplay.textContent = "Time: 00:00";
 //   infoContainer.appendChild(timerDisplay);
 
-
-
-
 //   // // Создаем элемент отображения счета
 //   //   scoreDisplay = document.createElement('div');
 //   //   scoreDisplay.id = 'score-display';
@@ -737,7 +762,7 @@ function generateChaoticGrid() {
 //   //   hintButton = document.createElement("button");
 //   //   hintButton.id = "hint-btn";
 //   //   uiContainer.appendChild(hintButton);
-  
+
 //   //   // Экран вывода подсказки
 //   //   hintDisplay = document.createElement("div");
 //   //   hintDisplay.id = "hint-display";
@@ -758,17 +783,11 @@ function generateChaoticGrid() {
 //   //   revertButton.id = "revert-btn";
 //   //   revertButton.textContent = "Revert";
 //   //   uiContainer.appendChild(revertButton);
-  
 
 //   //   // Кнопка setting
 //   //   const settingsBtn = document.createElement("button");
 //   //   settingsBtn.id = "setting";
 //   //   uiContainer.appendChild(settingsBtn);
-
-
-
-
-
 
 // }
 
@@ -917,7 +936,7 @@ function generateChaoticGrid() {
 // //Логика работы кнопка  Reset
 // function resetGame() {
 //   if (!confirm("Are you sure you want to start the game again?")) {
-//     return; 
+//     return;
 //   }
 
 //   // Останавливаем таймер

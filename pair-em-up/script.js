@@ -1,6 +1,5 @@
 // Объявляем глобальные переменные для элементов управления
 let gameContainer;
-let showHint;
 
 let hintDisplay;
 let timerDisplay;
@@ -35,6 +34,9 @@ let gameInfoContainer;
 let addChaoticButton;
 let addRandomButton;
 let addRowsButton;
+let hintCount;
+let hintCounterDisplay;
+
 
 // Функция создания UI элементов
 function createUIElements() {
@@ -130,7 +132,7 @@ function createGameElements() {
     hintButton = document.createElement("button");
     hintButton.id = "hint-btn";
     hintButton.textContent = "Hints";
-    hintButton.onclick = showHint;
+    hintButton.addEventListener("click", showHint);
     gameInfoContainer.appendChild(hintButton);
   }
 
@@ -158,19 +160,7 @@ function createGameElements() {
     // resetButton.onclick = resetGame;
     gameInfoContainer.appendChild(resetButton);
   }
-  // // Кнопка "Revert"
-  // // if (resetButton === undefined) {
-  // revertButton = document.createElement("button");
-  // revertButton.id = "revert-btn";
-  // revertButton.textContent = "Revert";
-  // gameInfoContainer.appendChild(revertButton);
-  // revertButton.classList.add("disabled"); // визуально отключена
-  // revertButton.disabled = true; // логически отключена
-  // revertButton.classList.add("revert-btn-inactive")
-  // gameInfoContainer.appendChild(revertButton);
-  // revertButton.addEventListener("click", undoLastMove);
-  // // }
-  // Кнопка setting
+    // Кнопка setting
   if (settingsBtn === undefined) {
     settingsBtn = document.createElement("button");
     settingsBtn.id = "setting";
@@ -179,11 +169,9 @@ function createGameElements() {
     gameInfoContainer.appendChild(settingsBtn);
   }
   // Таймер игры
-
   if (!timerDisplay) {
     timerDisplay = document.createElement("div");
     timerDisplay.id = "timer-display";
-
     gameInfoContainer.appendChild(timerDisplay);
   }
   timerDisplay.textContent = "Time: 00:00";
@@ -201,11 +189,7 @@ function createRevertButton() {
     revertButton.textContent = "Revert";
 
     // Добавляем класс визуального неактивного состояния
-    // revertButton.classList.add("disabled"); // базовый класс отключения
     revertButton.classList.add("revert-btn-inactive"); // визуальный стиль
-
-    // Логически отключаем кнопку
-    // revertButton.disabled = true;
 
     // Добавляем обработчик клика
     revertButton.addEventListener("click", undoLastMove);
@@ -222,14 +206,10 @@ function createRevertButton() {
 function updateUndoButtonState() {
   if (canUndo) {
     // Активируем кнопку
-    // revertButton.disabled = false;
-    // revertButton.classList.remove("disabled");
     revertButton.classList.remove("revert-btn-inactive");
     revertButton.classList.add("revert-btn-active");
   } else {
     // Деактивируем кнопку
-    // revertButton.disabled = true;
-    // revertButton.classList.add("disabled");
     revertButton.classList.remove("revert-btn-active");
     revertButton.classList.add("revert-btn-inactive");
   }
@@ -505,19 +485,6 @@ function isAdjacent(cell1, cell2) {
   }
 }
 
-// // Обновление состояния кнопки
-// function updateUndoButtonState() {
-//   const btn = document.getElementById("revert-btn");
-//   if (!revertButton){}
-//   if (canUndo) {
-//     btn.disabled = false;
-//     btn.classList.remove("disabled");
-//   } else {
-//     btn.disabled = true;
-//     btn.classList.add("disabled");
-//   }
-// }
-
 // Функция обновления состояния кнопки
 function updateUndoButtonState() {
   if (!revertButton) {
@@ -582,23 +549,23 @@ function removePair(cell1, cell2) {
   updateUndoButtonState();
 }
 
-function checkPair() {
-  const [cell1, cell2] = selectedCells;
-  const num1 = grid[cell1.row][cell1.col];
-  const num2 = grid[cell2.row][cell2.col];
+// function checkPair() {
+//   const [cell1, cell2] = selectedCells;
+//   const num1 = grid[cell1.row][cell1.col];
+//   const num2 = grid[cell2.row][cell2.col];
 
-  console.log("Проверяем пару:", num1, num2);
-  console.log("Смежные:", isAdjacent(cell1, cell2));
-  console.log("Валидная пара:", isValidPair(num1, num2));
+//   console.log("Проверяем пару:", num1, num2);
+//   console.log("Смежные:", isAdjacent(cell1, cell2));
+//   console.log("Валидная пара:", isValidPair(num1, num2));
 
-  if (isAdjacent(cell1, cell2) && isValidPair(num1, num2)) {
-    removePair(cell1, cell2);
-    updateScore(num1, num2);
-  } else {
-    alert("Неверная пара!");
-    clearSelection();
-  }
-}
+//   if (isAdjacent(cell1, cell2) && isValidPair(num1, num2)) {
+//     removePair(cell1, cell2);
+//     updateScore(num1, num2);
+//   } else {
+//     alert("Неверная пара!");
+//     clearSelection();
+//   }
+// }
 
 // Очистка выделения
 function clearSelection() {
@@ -712,6 +679,106 @@ function undoLastMove() {
   lastRemovedPair = null;
   updateUndoButtonState();
 }
+
+// // Обновляем отображение подсказок
+// function updateHintDisplay() {
+//   hintCount = countValidPairs();
+//   hintDisplay.textContent = `Hints: ${hintCount}`;
+// }
+
+// Обработчик клика
+function showHint() {
+  const hint = getHint();
+  if (hint) {
+    highlightHint(hint);
+    // hintCount++;
+    // hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
+    // updateHintDisplay(); // если есть счётчик подсказок
+    console.log("Использована подсказка");
+  } else {
+    alert("There is no hint");
+  }
+}
+
+// функцию для поиска подсказки
+// Поиск подсказки
+// функцию для поиска подсказки
+function getHint() {
+  // Получаем реальный размер сетки
+  const rows = grid.length;
+  const cols = grid[0]?.length || 0; // Проверяем существование первой строки
+  for (let row1 = 0; row1 < rows; row1++) {
+    // Проверяем существование строки
+    if (!grid[row1]) continue;
+
+    for (let col1 = 0; col1 < cols; col1++) {
+      // Проверяем существование элемента
+      if (!grid[row1][col1]) continue;
+
+      const num1 = grid[row1][col1];
+      if (num1 === null) continue;
+
+      for (let row2 = 0; row2 < rows; row2++) {
+        // Проверяем существование строки
+        if (!grid[row2]) continue;
+
+        for (let col2 = 0; col2 < cols; col2++) {
+          if (row1 === row2 && col1 === col2) continue;
+
+          // Проверяем существование элемента
+          if (!grid[row2][col2]) continue;
+
+          const num2 = grid[row2][col2];
+          if (num2 === null) continue;
+
+          const cell1 = { row: row1, col: col1 };
+          const cell2 = { row: row2, col: col2 };
+
+          if (isAdjacent(cell1, cell2) && isValidPair(num1, num2)) {
+            // Возвращаем координаты подсказки
+            return { cell1, cell2 };
+          }
+        }
+      }
+    }
+  }
+  return null; // Если подсказок нет
+}
+
+// Проверка пары чисел
+const isSameOrSum10 = (num1, num2) => {
+    return num1 === num2 || num1 + num2 === 10;
+};
+// подсветки найденной пары
+function highlightHint(hint) {
+    if (!hint) return;
+    
+    const { cell1, cell2 } = hint;
+    
+    // Получаем элементы ячеек
+    const cell1Element = document.querySelector(`tr:nth-child(${cell1.row + 1}) td:nth-child(${cell1.col + 1})`);
+    const cell2Element = document.querySelector(`tr:nth-child(${cell2.row + 1}) td:nth-child(${cell2.col + 1})`);
+    
+    // Добавляем класс подсветки
+    cell1Element.classList.add('hint');
+    cell2Element.classList.add('hint');
+    
+    // Убираем подсветку через 3 секунды
+    setTimeout(() => {
+        cell1Element.classList.remove('hint');
+        cell2Element.classList.remove('hint');
+    }, 3000);
+}
+
+// Счётчик использованных подсказок
+function createHintCounter() {
+  hintCounterDisplay = document.createElement("div");
+  hintCounterDisplay.id = "hint-counter";
+  hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
+  gameInfoContainer.appendChild(hintCounterDisplay);
+}
+    
+
 
 //     // Панель управления
 //     const gameControls = document.createElement("div");

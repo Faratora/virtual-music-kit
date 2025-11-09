@@ -1,12 +1,11 @@
 a {
   font-size: 25px;
 }
-
-#game-container {
+#ui-container {
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
-		border: 1px solid red;
+		border: 1px solid rgb(132, 0, 255);
 		text-align: center;
 }
 h1{
@@ -14,6 +13,13 @@ h1{
     margin-top: 0;
     margin-bottom: 0;
 }
+.link-container {
+  display: flex;
+  align-items: center;       /* выравнивание по вертикали */
+  justify-content: center;   /* центрируем по горизонтали */
+  margin: 10px 0;
+}
+
 .link-container {
   display: flex;
   align-items: center;       /* выравнивание по вертикали */
@@ -53,13 +59,175 @@ h1{
     margin-right: 5px;
     vertical-align: middle;
 }
-#game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;  /* Центрируем по горизонтали */
-    margin: 0 auto;      /* Центрируем контейнер на странице */
+
+
+#grid-container {
     width: 100%;
+    max-width: 600px;    /* Максимальная ширина сетки */
+    margin: 20px auto;   /* Отступы сверху/снизу и центрирование */
+    font-size: 30px;
 }
+
+table {
+    border-collapse: collapse;
+    width: 100%;         /* Таблица занимает всю доступную ширину */
+    margin: 0 auto;      /* Центрирование таблицы */
+    max-height: 60%;
+}
+
+td {
+    border: 2px solid #000;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: 25px;
+    
+}
+#mode-panel {
+  display: flex;
+  gap: 20px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mode-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  width: 200px;
+  background-color: #f9f9f9;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.mode-card:hover {
+  transform: scale(1.05);
+}
+
+.mode-card h3 {
+  margin-bottom: 10px;
+}
+
+.mode-card p {
+  font-size: 18px;
+  color: #555;
+}
+
+.mode-card button {
+  margin-top: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+span{
+    font-size: 40px;
+    color: green
+}
+
+td.selected {
+  background-color: #ffd700;
+  border: 2px solid #080808;
+}
+
+.hint {
+    background-color: rgb(21, 223, 82) !important;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Стили для правой колонки */
+#game-info-container {
+    display: flex; /* Включаем flex-layout */
+    flex-direction: column; /* Располагаем элементы в столбик */
+    align-items: flex-start; /* Выравнивание по левому краю */
+    gap: 10px; /* Расстояние между элементами */
+    padding: 10px;
+    border: 1px solid rgb(166, 255, 0);
+    margin: 10px;
+}
+#game-field-container {
+    border: 1px solid rgb(255, 0, 64);
+    margin: 10px;
+}
+#game-controls {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #007bff;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.mode-button:hover {
+    background: #0056b3;
+}
+
+/* #info-container{
+  text-align: center;
+  border: 1px solid rgb(0, 255, 85);
+} */
+#hint-display{
+  font-size: 26px;
+}
+#timer-display{
+  font-size: 26px;
+}
+
+a {
+  font-size: 25px;
+}
+
+
+
+.link-container a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+}
+
+.link-container img {
+  width: 20px;
+  height: 20px;
+  margin-left: 6px;
+}
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+     flex-direction: column;
+    padding: 5px 0;
+
+}
+
+.header a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+   
+}
+
+.header img {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
 
 #grid-container {
     width: 100%;
@@ -141,11 +309,6 @@ td.selected {
     100% { opacity: 1; }
 }
 
-#game-controls {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-}
 
 button {
     padding: 10px 20px;
@@ -161,4 +324,55 @@ button {
 
 .mode-button:hover {
     background: #0056b3;
+}
+
+#info-container{
+  text-align: center;
+  border: 1px solid rgb(0, 255, 85);
+}
+#hint-display{
+  font-size: 26px;
+}
+#timer-display{
+  font-size: 26px;
+}
+
+#info-container{
+    display: flex;
+    justify-content: center;
+}
+#game-container {
+    display: flex; /* Включаем flex-layout */
+    justify-content: center; /* Распределение пространства */
+    gap: 20px; /* Расстояние между колонками */
+    width: 40%;
+    /* flex-direction: column; */
+    border: 1px solid rgb(0, 255, 85);
+    margin: 0 auto;
+}
+
+/* Стили для правой колонки */
+#game-info-container {
+    display: flex; /* Включаем flex-layout */
+    flex-direction: column; /* Располагаем элементы в столбик */
+    align-items: flex-start; /* Выравнивание по левому краю */
+    gap: 10px; /* Расстояние между элементами */
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+/* Дополнительно можно добавить стили для кнопок и элементов */
+#game-info > * {
+    margin: 5px 0; /* Отступы между элементами */
+}
+
+#game-info button {
+    width: 100%; /* Кнопки на всю ширину колонки */
+    margin-bottom: 5px;
+}
+
+/* Стили для выравнивания текста */
+#game-info span,
+#game-info div {
+    text-align: left; /* Выравнивание текста по левому краю */
 }

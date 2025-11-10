@@ -509,12 +509,11 @@ function isValidPair(num1, num2) {
 }
 // Обновление Score
 function updateScore(num1, num2) {
-  let points = 0;
-
+  
   if (num1 === undefined || num2 === undefined) {
-    return;
+    return 0;
   }
-
+  let points = 0;
   if (num1 === 5 && num2 === 5) {
     points = 3;
   } else if (num1 === num2) {
@@ -522,11 +521,12 @@ function updateScore(num1, num2) {
   } else if (num1 + num2 === 10) {
     points = 2;
   }
+return points; // Возвращаем очки, не меняем score!
 
-  score += points;
-  document.getElementById(
-    "score-display"
-  ).textContent = `Score: ${score}/${TARGET_SCORE}`;
+  // score += points;
+  // document.getElementById(
+  //   "score-display"
+  // ).textContent = `Score: ${score}/${TARGET_SCORE}`;
 }
 
 // Удаление пары ячеек
@@ -589,7 +589,17 @@ function checkPair() {
     }
 
     removePair(cell1, cell2);
-    updateScore(num1, num2);
+
+// Добавляем очки к счёту
+    const points = updateScore(num1, num2);
+    score += points;
+
+ // Обновляем отображение счёта
+    if (scoreDisplay) {
+      scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+    }
+
+    // updateScore(num1, num2);
     // checkWin();
   } else {
     alert("The wrong pair!");
@@ -666,17 +676,37 @@ function undoLastMove() {
 
   const { cell1, cell2, num1, num2 } = lastRemovedPair;
 
+   // Возвращаем цифры на поле
   grid[cell1.row][cell1.col] = num1;
   grid[cell2.row][cell2.col] = num2;
 
-  score -= updateScore(num1, num2);
-  scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+  // Вычисляем очки за пару (без изменения score)
+  const points = updateScore(num1, num2);
+  score -= points; // Корректно вычитаем
 
+
+  // score -= updateScore(num1, num2);
+  // scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+
+  // Обновляем отображение счёта
+  if (scoreDisplay) {
+    scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+  }
+
+  // Перерисовываем поле
   renderGrid();
-  updateHints();
 
+// Очищаем выделение
+  selectedCells = [];
+  const allCells = document.querySelectorAll('#game-grid td');
+  allCells.forEach(cell => cell.classList.remove('selected'));
+
+// Сбрасываем состояние отмены
   canUndo = false;
   lastRemovedPair = null;
+ 
+ 
+  updateHints();
   updateUndoButtonState();
 }
 
@@ -700,8 +730,6 @@ function showHint() {
   }
 }
 
-// функцию для поиска подсказки
-// Поиск подсказки
 // функцию для поиска подсказки
 function getHint() {
   // Получаем реальный размер сетки

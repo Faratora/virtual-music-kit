@@ -1,15 +1,18 @@
 // Объявляем глобальные переменные для элементов управления
+const TARGET_SCORE = 100; // Целевой счёт для победы
+const MAX_SHUFFLE_USES = 5;
+const GRID_SIZE = 9;
 let gameContainer;
 
 let hintDisplay;
 let timerDisplay;
-const TARGET_SCORE = 100; // Целевой счёт для победы
+
 let selectedCells = []; // Выбранные ячейки
 let score = 0; // Текущий счёт
 let scoreDisplay;
 let startTime;
 
-const GRID_SIZE = 9;
+
 let grid = []; // Матрица чисел
 let loadingIndicator;
 let timer = 0;
@@ -20,6 +23,7 @@ let firstClick = true;
 let lastRemovedPair = null;
 let canUndo = false;
 let currentPatternIndex = 0;
+let shuffleCount = 0;
 let gameGrid;
 let currentMode; // переменная для хранения текущего режима
 let gridContainer;
@@ -38,6 +42,10 @@ let hintCount;
 let hintCounterDisplay;
 let saveButton;
 let continueButton;
+let loadButton;
+
+let shuffleButton;
+
 
 // Функция создания UI элементов
 function createUIElements() {
@@ -179,8 +187,7 @@ function createGameElements() {
 
   createRevertButton();
   createSaveButton();
-    createLoadButton();
-
+  createLoadButton();
 }
 
 // Добавляем кнопку сохранения
@@ -202,6 +209,28 @@ function createContinueButton() {
     continueButton.textContent = "Continue Game";
     continueButton.addEventListener("click", continueGame);
     gameInfoContainer.appendChild(continueButton);
+  }
+}
+
+// Добавляем кнопку загрузки
+function createLoadButton() {
+  if (!loadButton) {
+  loadButton = document.createElement("button");
+  loadButton.id = "load-btn";
+  loadButton.textContent = "Load Game";
+  loadButton.addEventListener("click", loadGameState);
+  gameInfoContainer.appendChild(loadButton);
+  }
+}
+
+// Добавляем кнопку перемешивания
+function createShuffleButton() {
+  if (!shuffleButton) {
+    shuffleButton = document.createElement("button");
+    shuffleButton.id = "shuffle-btn";
+    shuffleButton.textContent = "Shuffle (0/5)";
+    shuffleButton.addEventListener("click", shuffleGrid);
+    gameInfoContainer.appendChild(shuffleButton);
   }
 }
 
@@ -269,6 +298,26 @@ function startTimer() {
   }, 1000);
 }
 
+// Функция для переключения режимов игры
+function specificModeButton() {
+    
+    if (addRandomButton) {
+        gameInfoContainer.removeChild(addRandomButton);
+        addRandomButton = undefined;
+    }
+    
+    if (addChaoticButton) {
+        gameInfoContainer.removeChild(addChaoticButton);
+        addChaoticButton = undefined;
+    }
+    
+    if (addRowsButton) {
+        gameInfoContainer.removeChild(addRowsButton);
+        addRowsButton = undefined;
+    }
+}
+
+
 // Функция запуска игры
 function startGame(selectedMode) {
   mode = selectedMode;
@@ -276,7 +325,9 @@ function startGame(selectedMode) {
   selectedCells = [];
   score = 0;
 
+specificModeButton();
   createGameElements();
+
 
   // Генерируем сетку в зависимости от режима
   switch (mode) {
@@ -285,9 +336,11 @@ function startGame(selectedMode) {
       // Создаем кнопки управления
 
       renderGrid();
+      
       // createControlButtons();
       // stopTimer();
       // startTimer();
+      
 
       if (addRowsButton === undefined) {
         addRowsButton = document.createElement("button");
@@ -296,15 +349,17 @@ function startGame(selectedMode) {
         addRowsButton.onclick = addClassicRows;
         gameInfoContainer.appendChild(addRowsButton);
       }
+
       break;
 
     case "random":
       grid = generateRandomGrid();
       // createControlButtons();
       renderGrid();
+      
       // stopTimer();
       // startTimer();
-      if (addRandomButton === undefined) {
+      if (addRowsButton === undefined || addRandomButton === undefined || addChaoticButton === undefined) {
         addRandomButton = document.createElement("button");
         addRandomButton.id = "add-random-button";
         addRandomButton.textContent = "Add Numbers (random mode)";
@@ -317,11 +372,12 @@ function startGame(selectedMode) {
       grid = generateChaoticGrid();
       // createControlButtons();
       renderGrid();
+     
       // stopTimer();
       // startTimer();
 
       // AddRowAddingButton("add-chaotic-button", "Добавить хаотичную строку", addChaoticRow);
-      if (addChaoticButton === undefined) {
+      if (addRowsButton === undefined || addRandomButton === undefined || addChaoticButton === undefined) {
         addChaoticButton = document.createElement("button");
         addChaoticButton.id = "add-chaotic-button";
         addChaoticButton.textContent = "Add Numbers (chaotic mode)";
@@ -394,6 +450,9 @@ function renderGrid() {
 
 // Функция добавление новых строк в игровое поле в классическом режиме
 function addClassicRows() {
+  // Проверяем, можно ли добавить новую строку
+    if (grid.length >= GRID_SIZE) return;
+    
   function getShuffledRemainingNumbers() {
     const numbers = [];
 
@@ -431,6 +490,8 @@ function addClassicRows() {
 
 // Генерация добавление новых строк в игровое поле в сетки с числами Random
 function generateRandomGrid() {
+  // Проверяем, можно ли добавить новую строку
+  if (grid.length >= GRID_SIZE) return;
   initGrid();
   const numbers = Array.from(
     { length: GRID_SIZE * 3 },
@@ -449,8 +510,10 @@ function generateRandomGrid() {
 
 // Функция добавление новых строк в игровое поле в Random mode
 function addRandomRow() {
+  // Проверяем, можно ли добавить новую строку
   if (grid.length >= GRID_SIZE) return;
   // grid.push(Array.from({ length: GRID_SIZE }, () => Math.floor(Math.random() * 9) + 1));
+  // Получаем все числа в текущей сетке, исключая нули
   const remainingNumbers = grid.flat().filter((n) => n !== 0);
 
   // Генерируем новую строку из чисел 1-9
@@ -461,7 +524,9 @@ function addRandomRow() {
   grid.push(newRow);
   renderGrid();
 }
+// Функция добавления хаотичной строки
 function addChaoticRow() {
+  // Проверяем, можно ли добавить новую строку
   if (grid.length >= GRID_SIZE) return;
   grid.push(
     Array.from({ length: GRID_SIZE }, () => Math.floor(Math.random() * 9) + 1)
@@ -939,106 +1004,145 @@ function resetGame() {
   updateHints();
 }
 
-
 // Функция сохранения состояния игры
 function saveGameState() {
-    const gameState = {
-        mode: currentMode,
-        grid: grid.map(row => row.slice()), // Копируем сетку
-        score: score,
-        timer: timer,
-        isTimerRunning: isTimerRunning,
-        startTime: startTime,
-        selectedCells: selectedCells.slice(),
-        canUndo: canUndo,
-        lastRemovedPair: lastRemovedPair,
-        firstClick: firstClick,
-        hintCount: hintCount,       
-    };
-    
-    // Сохраняем в localStorage
-    localStorage.setItem('savedGame', JSON.stringify(gameState));
-    alert('Game saved!');
+  const gameState = {
+    mode: currentMode,
+    grid: grid.map((row) => row.slice()), // Копируем сетку
+    score: score,
+    timer: timer,
+    isTimerRunning: isTimerRunning,
+    startTime: startTime,
+    selectedCells: selectedCells.slice(),
+    canUndo: canUndo,
+    lastRemovedPair: lastRemovedPair,
+    firstClick: firstClick,
+    hintCount: hintCount,
+  };
+
+  // Сохраняем в localStorage
+  localStorage.setItem("savedGame", JSON.stringify(gameState));
+  alert("Game saved!");
 }
 
 // Функция загрузки сохранённой игры
 function loadGameState() {
-    const savedGame = localStorage.getItem('savedGame');
-    if (!savedGame) {
-        alert('No saved game found!');
-        return;
-    }
-    
-    const gameState = JSON.parse(savedGame);
-    
-    // Восстанавливаем состояние
-    currentMode = gameState.mode;
-    grid = gameState.grid.map(row => row.slice());
-    score = gameState.score;
-    timer = gameState.timer;
-    isTimerRunning = gameState.isTimerRunning;
-    startTime = gameState.startTime;
-    selectedCells = gameState.selectedCells.slice();
-    canUndo = gameState.canUndo;
-    lastRemovedPair = gameState.lastRemovedPair;
-    firstClick = gameState.firstClick;
-    hintCount = gameState.hintCount;
-    
-    // Обновляем интерфейс
-    renderGrid();
-    scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
-    updateTimerDisplay();
-    updateUndoButtonState();
-    updateHints();
-    
-    // Если таймер был запущен, возобновляем его
-    if (isTimerRunning) {
-        startTimer();
-    }
+  const savedGame = localStorage.getItem("savedGame");
+  if (!savedGame) {
+    alert("No saved game found!");
+    return;
+  }
+
+  const gameState = JSON.parse(savedGame);
+
+  // Восстанавливаем состояние
+  currentMode = gameState.mode;
+  grid = gameState.grid.map((row) => row.slice());
+  score = gameState.score;
+  timer = gameState.timer;
+  isTimerRunning = gameState.isTimerRunning;
+  startTime = gameState.startTime;
+  selectedCells = gameState.selectedCells.slice();
+  canUndo = gameState.canUndo;
+  lastRemovedPair = gameState.lastRemovedPair;
+  firstClick = gameState.firstClick;
+  hintCount = gameState.hintCount;
+
+  // Обновляем интерфейс
+  renderGrid();
+  scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+  updateTimerDisplay();
+  updateUndoButtonState();
+  updateHints();
+
+  // Если таймер был запущен, возобновляем его
+  if (isTimerRunning) {
+    startTimer();
+  }
 }
 
-// Добавляем кнопку загрузки
-function createLoadButton() {
-    const loadButton = document.createElement("button");
-    loadButton.id = "load-btn";
-    loadButton.textContent = "Load Game";
-    loadButton.addEventListener("click", loadGameState);
-    gameInfoContainer.appendChild(loadButton);
-}
+
 
 // Модифицируем updateTimerDisplay
 function updateTimerDisplay() {
-    if (!timerDisplay) return;
-    
-    const elapsed = Date.now() - startTime;
-    const minutes = Math.floor(elapsed / 60000);
-    const seconds = Math.floor((elapsed % 60000) / 1000);
-    timerDisplay.textContent = `Time: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
+  if (!timerDisplay) return;
 
+  const elapsed = Date.now() - startTime;
+  const minutes = Math.floor(elapsed / 60000);
+  const seconds = Math.floor((elapsed % 60000) / 1000);
+  timerDisplay.textContent = `Time: ${String(minutes).padStart(
+    2,
+    "0"
+  )}:${String(seconds).padStart(2, "0")}`;
+}
 
 // Функция продолжения игры
 function continueGame() {
-    const savedGame = localStorage.getItem('savedGame');
-    if (!savedGame) {
-        alert('No saved game to continue!');
+  const savedGame = localStorage.getItem("savedGame");
+  if (!savedGame) {
+    alert("No saved game to continue!");
+    return;
+  }
+
+  // Очищаем текущее состояние
+  resetGame();
+
+  // Загружаем сохранённое состояние
+  loadGameState();
+
+  // Активируем кнопку отмены, если была возможность отмены
+  if (canUndo) {
+    updateUndoButtonState();
+  }
+
+  // Показываем сообщение
+  alert("Game continued!");
+}
+
+// 2. Функция перемешивания
+function shuffleGrid() {
+    if (shuffleCount >= MAX_SHUFFLE_USES) {
+        alert("You've reached the maximum number of shuffles!");
         return;
     }
     
-    // Очищаем текущее состояние
-    resetGame();
+    if (!confirm("Are you sure you want to shuffle the grid?")) return;
     
-    // Загружаем сохранённое состояние
-    loadGameState();
+    // Сохраняем текущее состояние перед перемешиванием
+    saveStateToHistory();
     
-    // Активируем кнопку отмены, если была возможность отмены
-    if (canUndo) {
-        updateUndoButtonState();
+    // Увеличиваем счетчик использований
+    shuffleCount++;
+    updateShuffleCounter();
+    
+    // Собираем все числа в массив
+    const numbers = [];
+    for (let i = 0; i < GRID_SIZE; i++) {
+        for (let j = 0; j < GRID_SIZE; j++) {
+            if (grid[i][j] !== null) {
+                numbers.push(grid[i][j]);
+            }
+        }
     }
     
-    // Показываем сообщение
-    alert('Game continued!');
+    // Перемешиваем массив
+    shuffleArray(numbers);
+    
+    // Расставляем числа обратно случайным образом
+    let index = 0;
+    for (let i = 0; i < GRID_SIZE; i++) {
+        for (let j = 0; j < GRID_SIZE; j++) {
+            if (grid[i][j] !== null) {
+                grid[i][j] = numbers[index++];
+            }
+        }
+    }
+    
+    // Обновляем интерфейс
+    renderGrid();
+    updateUndoButtonState();
 }
+
 
 
 

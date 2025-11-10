@@ -157,7 +157,7 @@ function createGameElements() {
     resetButton = document.createElement("button");
     resetButton.id = "reset-btn";
     resetButton.textContent = "Reset";
-    // resetButton.onclick = resetGame;
+    resetButton.onclick = resetGame;
     gameInfoContainer.appendChild(resetButton);
   }
     // Кнопка setting
@@ -871,10 +871,26 @@ function showResults() {
 
 
 
+function resetGame() {
+    if (!confirm("Are you sure you want to start the game again?")) {
+        return;
+    }
+     // Очищаем все состояния
+    selectedCells = [];
+    score = 0;
+    timer = 0;
+    canUndo = false;
+    lastRemovedPair = null;
+    firstClick = true;
+    isTimerRunning = false;
 
+     // Останавливаем таймер
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+  }
 
-
-
+}
 //     // Панель управления
 //     const gameControls = document.createElement("div");
 //     gameControls.id = "game-controls";
@@ -1063,11 +1079,6 @@ function showResults() {
 //     }
 // }
 
-// // Функция resetGame()
-// function resetGame() {
-//     if (!confirm("Are you sure you want to start the game again?")) {
-//         return;
-//     }
 
 //     // Проверяем все необходимые элементы
 //     if (!scoreDisplay || !timerDisplay) {
@@ -1169,14 +1180,6 @@ function showResults() {
 //   resultButton.textContent = "Results";
 //   resultButton.onclick = showResults;
 //   infoContainer.appendChild(resultButton);
-
-//   // Кнопка Reset
-//   const resetButton = document.createElement("button");
-//   resetButton.id = "reset-btn";
-//   resetButton.textContent = "Reset";
-//   resetButton.onclick = resetGame;
-
-//   infoContainer.appendChild(resetButton);
 
 //   // Кнопка "Revert"
 //   const undoButton = document.createElement("button");
@@ -1385,11 +1388,6 @@ function showResults() {
 //   document.body.appendChild(resultsPanel);
 // }
 
-// //Логика работы кнопка  Reset
-// function resetGame() {
-//   if (!confirm("Are you sure you want to start the game again?")) {
-//     return;
-//   }
 
 //   // Останавливаем таймер
 //   stopTimer();

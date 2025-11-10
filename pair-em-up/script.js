@@ -21,7 +21,7 @@ let lastRemovedPair = null;
 let canUndo = false;
 let currentPatternIndex = 0;
 let gameGrid;
-let currentMode;
+let currentMode; // переменная для хранения текущего режима
 let gridContainer;
 let hintButton;
 let resultButton;
@@ -36,7 +36,8 @@ let addRandomButton;
 let addRowsButton;
 let hintCount;
 let hintCounterDisplay;
-
+let saveButton;
+let continueButton;
 
 // Функция создания UI элементов
 function createUIElements() {
@@ -160,7 +161,7 @@ function createGameElements() {
     resetButton.onclick = resetGame;
     gameInfoContainer.appendChild(resetButton);
   }
-    // Кнопка setting
+  // Кнопка setting
   if (settingsBtn === undefined) {
     settingsBtn = document.createElement("button");
     settingsBtn.id = "setting";
@@ -177,7 +178,34 @@ function createGameElements() {
   timerDisplay.textContent = "Time: 00:00";
 
   createRevertButton();
+  createSaveButton();
+    createLoadButton();
+
 }
+
+// Добавляем кнопку сохранения
+function createSaveButton() {
+  if (!saveButton) {
+    saveButton = document.createElement("button");
+    saveButton.id = "save-btn";
+    saveButton.textContent = "Save";
+    saveButton.addEventListener("click", saveGameState);
+    gameInfoContainer.appendChild(saveButton);
+  }
+}
+
+// Добавляем кнопку "Продолжить игру"
+function createContinueButton() {
+  if (!continueButton) {
+    continueButton = document.createElement("button");
+    continueButton.id = "continue-btn";
+    continueButton.textContent = "Continue Game";
+    continueButton.addEventListener("click", continueGame);
+    gameInfoContainer.appendChild(continueButton);
+  }
+}
+
+
 // Функция для создания и настройки кнопки Revert
 function createRevertButton() {
   if (!revertButton) {
@@ -244,6 +272,7 @@ function startTimer() {
 // Функция запуска игры
 function startGame(selectedMode) {
   mode = selectedMode;
+  currentMode = selectedMode;
   selectedCells = [];
   score = 0;
 
@@ -509,7 +538,6 @@ function isValidPair(num1, num2) {
 }
 // Обновление Score
 function updateScore(num1, num2) {
-  
   if (num1 === undefined || num2 === undefined) {
     return 0;
   }
@@ -521,7 +549,7 @@ function updateScore(num1, num2) {
   } else if (num1 + num2 === 10) {
     points = 2;
   }
-return points; // Возвращаем очки, не меняем score!
+  return points; // Возвращаем очки, не меняем score!
 
   // score += points;
   // document.getElementById(
@@ -574,7 +602,6 @@ function clearSelection() {
   updateHints();
 }
 
-
 // Функция проверки пары ячеек
 function checkPair() {
   const [cell1, cell2] = selectedCells;
@@ -590,11 +617,11 @@ function checkPair() {
 
     removePair(cell1, cell2);
 
-// Добавляем очки к счёту
+    // Добавляем очки к счёту
     const points = updateScore(num1, num2);
     score += points;
 
- // Обновляем отображение счёта
+    // Обновляем отображение счёта
     if (scoreDisplay) {
       scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
     }
@@ -676,14 +703,13 @@ function undoLastMove() {
 
   const { cell1, cell2, num1, num2 } = lastRemovedPair;
 
-   // Возвращаем цифры на поле
+  // Возвращаем цифры на поле
   grid[cell1.row][cell1.col] = num1;
   grid[cell2.row][cell2.col] = num2;
 
   // Вычисляем очки за пару (без изменения score)
   const points = updateScore(num1, num2);
   score -= points; // Корректно вычитаем
-
 
   // score -= updateScore(num1, num2);
   // scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
@@ -696,16 +722,15 @@ function undoLastMove() {
   // Перерисовываем поле
   renderGrid();
 
-// Очищаем выделение
+  // Очищаем выделение
   selectedCells = [];
-  const allCells = document.querySelectorAll('#game-grid td');
-  allCells.forEach(cell => cell.classList.remove('selected'));
+  const allCells = document.querySelectorAll("#game-grid td");
+  allCells.forEach((cell) => cell.classList.remove("selected"));
 
-// Сбрасываем состояние отмены
+  // Сбрасываем состояние отмены
   canUndo = false;
   lastRemovedPair = null;
- 
- 
+
   updateHints();
   updateUndoButtonState();
 }
@@ -775,27 +800,31 @@ function getHint() {
 
 // Проверка пары чисел
 const isSameOrSum10 = (num1, num2) => {
-    return num1 === num2 || num1 + num2 === 10;
+  return num1 === num2 || num1 + num2 === 10;
 };
 // подсветки найденной пары
 function highlightHint(hint) {
-    if (!hint) return;
-    
-    const { cell1, cell2 } = hint;
-    
-    // Получаем элементы ячеек
-    const cell1Element = document.querySelector(`tr:nth-child(${cell1.row + 1}) td:nth-child(${cell1.col + 1})`);
-    const cell2Element = document.querySelector(`tr:nth-child(${cell2.row + 1}) td:nth-child(${cell2.col + 1})`);
-    
-    // Добавляем класс подсветки
-    cell1Element.classList.add('hint');
-    cell2Element.classList.add('hint');
-    
-    // Убираем подсветку через 3 секунды
-    setTimeout(() => {
-        cell1Element.classList.remove('hint');
-        cell2Element.classList.remove('hint');
-    }, 3000);
+  if (!hint) return;
+
+  const { cell1, cell2 } = hint;
+
+  // Получаем элементы ячеек
+  const cell1Element = document.querySelector(
+    `tr:nth-child(${cell1.row + 1}) td:nth-child(${cell1.col + 1})`
+  );
+  const cell2Element = document.querySelector(
+    `tr:nth-child(${cell2.row + 1}) td:nth-child(${cell2.col + 1})`
+  );
+
+  // Добавляем класс подсветки
+  cell1Element.classList.add("hint");
+  cell2Element.classList.add("hint");
+
+  // Убираем подсветку через 3 секунды
+  setTimeout(() => {
+    cell1Element.classList.remove("hint");
+    cell2Element.classList.remove("hint");
+  }, 3000);
 }
 
 // Счётчик использованных подсказок
@@ -805,8 +834,6 @@ function createHintCounter() {
   hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
   gameInfoContainer.appendChild(hintCounterDisplay);
 }
-    
-
 
 // Логика работы кнопка  Result
 function showResults() {
@@ -869,28 +896,152 @@ function showResults() {
   document.body.appendChild(resultsPanel);
 }
 
-
-
 function resetGame() {
-    if (!confirm("Are you sure you want to start the game again?")) {
-        return;
-    }
-     // Очищаем все состояния
-    selectedCells = [];
-    score = 0;
-    timer = 0;
-    canUndo = false;
-    lastRemovedPair = null;
-    firstClick = true;
-    isTimerRunning = false;
+  if (!confirm("Are you sure you want to start the game again?")) {
+    return;
+  }
+  // Очищаем все состояния
+  selectedCells = [];
+  score = 0;
+  timer = 0;
+  canUndo = false;
+  lastRemovedPair = null;
+  firstClick = true;
+  isTimerRunning = false;
 
-     // Останавливаем таймер
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
+  // Останавливаем таймер
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
   }
 
+  // Генерируем новую сетку в текущем режиме
+  switch (currentMode) {
+    case "classic":
+      grid = generateClassicGrid();
+      break;
+    case "random":
+      grid = generateRandomGrid();
+      break;
+    case "chaotic":
+      grid = generateChaoticGrid();
+      break;
+  }
+  // Обновляем интерфейс
+  renderGrid();
+  scoreDisplay.textContent = `Score: 0/${TARGET_SCORE}`;
+  timerDisplay.textContent = "Time: 00:00";
+
+  // Обновляем состояние кнопки отмены
+  updateUndoButtonState();
+
+  // Обновляем подсказки
+  updateHints();
 }
+
+
+// Функция сохранения состояния игры
+function saveGameState() {
+    const gameState = {
+        mode: currentMode,
+        grid: grid.map(row => row.slice()), // Копируем сетку
+        score: score,
+        timer: timer,
+        isTimerRunning: isTimerRunning,
+        startTime: startTime,
+        selectedCells: selectedCells.slice(),
+        canUndo: canUndo,
+        lastRemovedPair: lastRemovedPair,
+        firstClick: firstClick,
+        hintCount: hintCount,       
+    };
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('savedGame', JSON.stringify(gameState));
+    alert('Game saved!');
+}
+
+// Функция загрузки сохранённой игры
+function loadGameState() {
+    const savedGame = localStorage.getItem('savedGame');
+    if (!savedGame) {
+        alert('No saved game found!');
+        return;
+    }
+    
+    const gameState = JSON.parse(savedGame);
+    
+    // Восстанавливаем состояние
+    currentMode = gameState.mode;
+    grid = gameState.grid.map(row => row.slice());
+    score = gameState.score;
+    timer = gameState.timer;
+    isTimerRunning = gameState.isTimerRunning;
+    startTime = gameState.startTime;
+    selectedCells = gameState.selectedCells.slice();
+    canUndo = gameState.canUndo;
+    lastRemovedPair = gameState.lastRemovedPair;
+    firstClick = gameState.firstClick;
+    hintCount = gameState.hintCount;
+    
+    // Обновляем интерфейс
+    renderGrid();
+    scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+    updateTimerDisplay();
+    updateUndoButtonState();
+    updateHints();
+    
+    // Если таймер был запущен, возобновляем его
+    if (isTimerRunning) {
+        startTimer();
+    }
+}
+
+// Добавляем кнопку загрузки
+function createLoadButton() {
+    const loadButton = document.createElement("button");
+    loadButton.id = "load-btn";
+    loadButton.textContent = "Load Game";
+    loadButton.addEventListener("click", loadGameState);
+    gameInfoContainer.appendChild(loadButton);
+}
+
+// Модифицируем updateTimerDisplay
+function updateTimerDisplay() {
+    if (!timerDisplay) return;
+    
+    const elapsed = Date.now() - startTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+    timerDisplay.textContent = `Time: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+
+// Функция продолжения игры
+function continueGame() {
+    const savedGame = localStorage.getItem('savedGame');
+    if (!savedGame) {
+        alert('No saved game to continue!');
+        return;
+    }
+    
+    // Очищаем текущее состояние
+    resetGame();
+    
+    // Загружаем сохранённое состояние
+    loadGameState();
+    
+    // Активируем кнопку отмены, если была возможность отмены
+    if (canUndo) {
+        updateUndoButtonState();
+    }
+    
+    // Показываем сообщение
+    alert('Game continued!');
+}
+
+
+
 //     // Панель управления
 //     const gameControls = document.createElement("div");
 //     gameControls.id = "game-controls";
@@ -1078,7 +1229,6 @@ function resetGame() {
 //         isTimerRunning = false;
 //     }
 // }
-
 
 //     // Проверяем все необходимые элементы
 //     if (!scoreDisplay || !timerDisplay) {
@@ -1387,7 +1537,6 @@ function resetGame() {
 
 //   document.body.appendChild(resultsPanel);
 // }
-
 
 //   // Останавливаем таймер
 //   stopTimer();
@@ -2211,9 +2360,6 @@ function resetGame() {
 //   timerDisplay.textContent = `Time: ${timer}s`;
 // }
 
-
-
-
 // const GRID_SIZE = 9;
 // const TARGET_SCORE = 100; // Целевой счёт для победы
 
@@ -2765,11 +2911,7 @@ function resetGame() {
 //     .getElementById("mode-chaotic")
 //     .addEventListener("click", () => startGame("chaotic"));
 
-
-
-
 // }
-
 
 // // Отрисовка сетки
 // setTimeout(() => {

@@ -3,6 +3,9 @@ const TARGET_SCORE = 100; // Целевой счёт для победы
 const MAX_SHUFFLE_USES = 5;
 const GRID_SIZE = 9;
 let gameContainer;
+let hintsUsed = 0;
+
+
 
 let hintDisplay;
 let timerDisplay;
@@ -37,13 +40,18 @@ let gameInfoContainer;
 let addChaoticButton;
 let addRandomButton;
 let addRowsButton;
-let hintCount;
 let hintCounterDisplay;
 let saveButton;
 let continueButton;
 let loadButton;
 
+
+let hintElement;
 let shuffleButton;
+let hintCount = 0; // Сколько раз использовано подсказок
+const MAX_HINTS = 5; // Максимум подсказок за игру
+let availablePairs = 0; // Количество валидных пар на поле (обновляется динамически)
+
 
 // Функция создания UI элементов
 function createUIElements() {
@@ -147,8 +155,19 @@ function createGameElements() {
     // Экран вывода подсказки
     hintDisplay = document.createElement("div");
     hintDisplay.id = "hint-display";
-    hintDisplay.textContent = "Hints: 0";
     gameInfoContainer.appendChild(hintDisplay);
+  }
+ hintDisplay.textContent = "Hints: 0";
+
+ // Счётчик использованных подсказок
+  function createHintCounter() {
+    if (!hintCounterDisplay) {
+      hintCounterDisplay = document.createElement("div");
+      hintCounterDisplay.id = "hint-counter";
+      hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
+      gameInfoContainer.appendChild(hintCounterDisplay);
+    }
+    updateHintCounterDisplay(); // Обновляем отображение
   }
 
   // Кнопка Results
@@ -188,15 +207,25 @@ function createGameElements() {
   createLoadButton();
   createShuffleButton();
   createContinueButton();
+  getHintCounterText();
+  countHints();
+  createHintCounter(); // Создаём счётчик использованных подсказок*
+  
 }
-
 // Счётчик использованных подсказок
-function createHintCounter() {
-  hintCounterDisplay = document.createElement("div");
-  hintCounterDisplay.id = "hint-counter";
-  hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
-  gameInfoContainer.appendChild(hintCounterDisplay);
+function updateHintCounterDisplay() {
+  if (hintCounterDisplay) {
+    hintCounterDisplay.textContent =
+        `Hints used: ${hintCount}/${MAX_HINTS}`;
+  }
 }
+// // Счётчик использованных подсказок
+// function createHintCounter() {
+//   hintCounterDisplay = document.createElement("div");
+//   hintCounterDisplay.id = "hint-counter";
+//   hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
+//   gameInfoContainer.appendChild(hintCounterDisplay);
+// }
 
 // Добавляем кнопку перемешивания
 function createShuffleButton() {
@@ -241,6 +270,16 @@ function createLoadButton() {
     gameInfoContainer.appendChild(loadButton);
   }
 }
+
+// // Создаем элемент отображения счетчика подсказок
+// function createHintCounter() {
+//     if (!hintCounterDisplay) {
+//         hintCounterDisplay = document.createElement("div");
+//         hintCounterDisplay.id = "hint-counter";
+//         hintCounterDisplay.textContent = `Hint: 0/${MAX_HINTS}`;
+//         gameInfoContainer.appendChild(hintCounterDisplay);
+//     }
+// }
 
 // Функция для создания и настройки кнопки Revert
 function createRevertButton() {
@@ -303,6 +342,8 @@ function startTimer() {
       "0"
     )}:${String(seconds).padStart(2, "0")}`;
   }, 1000);
+
+  updateHints();
 }
 
 // Функция для переключения режимов игры
@@ -323,6 +364,10 @@ function specificModeButton() {
   }
 }
 
+
+
+
+
 // Функция запуска игры
 function startGame(selectedMode) {
   mode = selectedMode;
@@ -334,6 +379,7 @@ function startGame(selectedMode) {
   createGameElements();
   createShuffleButton();
   resetShuffleCount(); // Добавляем сброс счетчика
+  
 
   // Генерируем сетку в зависимости от режима
   switch (mode) {
@@ -342,7 +388,7 @@ function startGame(selectedMode) {
       // Создаем кнопки управления
 
       renderGrid();
-      updateHints();
+      // updateHints();
 
       // createControlButtons();
       stopTimer();
@@ -362,7 +408,7 @@ function startGame(selectedMode) {
       grid = generateRandomGrid();
       // createControlButtons();
       renderGrid();
-      updateHints();
+      // updateHints();
 
       stopTimer();
       startTimer();
@@ -379,7 +425,7 @@ function startGame(selectedMode) {
       grid = generateChaoticGrid();
       // createControlButtons();
       renderGrid();
-      updateHints();
+      // updateHints();
 
       stopTimer();
       startTimer();
@@ -454,6 +500,8 @@ function renderGrid() {
 
     gridTable.appendChild(tr);
   });
+  // Обновляем подсказки после рендера
+    updateHints();
 }
 
 function stopTimer() {
@@ -557,25 +605,29 @@ function generateChaoticGrid() {
   );
 }
 
+
+
+// Функция обработки выбранных ячеек
 function handleClick(cell, col, row) {
   if (selectedCells.length === 2) return;
 
   const cellIndex = { row, col };
 
+  // Проверка наличия ячейки в выбранных
   const alreadySelected = selectedCells.some(
-    (idx) => idx.row === cellIndex.row && idx.col === cellIndex.col
+    ({ row: r, col: c }) => r === row && c === col
   );
 
   if (alreadySelected) {
-    selectedCells = selectedCells.filter(
-      (idx) => !(idx.row === cellIndex.row && idx.col === cellIndex.col)
+     // Удаление ячейки из выбранных
+   selectedCells = selectedCells.filter(
+      ({ row: r, col: c }) => !(r === row && c === col)
     );
     cell.classList.remove("selected");
   } else {
     selectedCells.push(cellIndex);
     cell.classList.add("selected");
   }
-
   if (selectedCells.length === 2) {
     checkPair();
     // checkWin();
@@ -585,8 +637,10 @@ function handleClick(cell, col, row) {
 
 // Проверка смежности ячеек
 function isAdjacent(cell1, cell2) {
-  const rowDiff = Math.abs(cell1.row - cell2.row);
-  const colDiff = Math.abs(cell1.col - cell2.col);
+  const { row: r1, col: c1 } = cell1;
+  const { row: r2, col: c2 } = cell2;
+  const rowDiff = Math.abs(r1 - r2);
+  const colDiff = Math.abs(c1 - c2);
 
   // Проверка на смежность по горизонтали или вертикали
   if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
@@ -594,45 +648,54 @@ function isAdjacent(cell1, cell2) {
   }
 
   // Проверка в одной строке с пустыми ячейками между
-  if (cell1.row === cell2.row) {
-    const [startCol, endCol] =
-      cell1.col < cell2.col ? [cell1.col, cell2.col] : [cell2.col, cell1.col];
-
+ if (r1 === r2) {
+    const [startCol, endCol] = c1 < c2 ? [c1, c2] : [c2, c1];
     for (let c = startCol + 1; c < endCol; c++) {
-      if (grid[cell1.row][c] !== null) {
+      if (grid[r1][c] !== null) {
         return false; // Если есть непустые ячейки между
       }
     }
     return true;
   }
 
-  // Проверка в одном столбце с пустыми ячейками между
-  if (cell1.col === cell2.col) {
-    const [startRow, endRow] =
-      cell1.row < cell2.row ? [cell1.row, cell2.row] : [cell2.row, cell1.row];
-
+    // Проверка в одном столбце с пустыми ячейками между
+  if (c1 === c2) {
+    const [startRow, endRow] = r1 < r2 ? [r1, r2] : [r2, r1];
     for (let r = startRow + 1; r < endRow; r++) {
-      if (grid[r][cell1.col] !== null) {
+      if (grid[r][c1] !== null) {
         return false; // Если есть непустые ячейки между
       }
     }
     return true;
   }
 
-  // Проверка граничного случая между строками
-  if (
-    (cell1.col === GRID_SIZE - 1 &&
-      cell2.col === 0 &&
-      cell2.row === cell1.row + 1) ||
-    (cell2.col === GRID_SIZE - 1 &&
-      cell1.col === 0 &&
-      cell1.row === cell2.row + 1)
-  ) {
-    return true;
-  }
+ // Проверка граничного случая между крайними строками
+    if (
+        // Проверка правого края первой строки и левого края второй
+        (c1 === GRID_SIZE - 1 && c2 === 0 && r2 === r1 + 1) ||
+        // Проверка левого края первой строки и правого края второй
+        (c2 === GRID_SIZE - 1 && c1 === 0 && r1 === r2 + 1) ||
+        // Проверка между первой и последней строкой
+        (Math.abs(r1 - r2) === GRID_SIZE - 1 && 
+         ((c1 === GRID_SIZE - 1 && c2 === 0) || 
+          (c2 === GRID_SIZE - 1 && c1 === 0)))
+    ) {
+        // Проверка пустых ячеек между крайними столбцами
+        const startRow = Math.min(r1, r2);
+        const endRow = Math.max(r1, r2);
+        for (let r = startRow + 1; r < endRow; r++) {
+            if (grid[r][0] !== null || grid[r][GRID_SIZE - 1] !== null) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-  return false;
+    return false;
 }
+
+
+
 
 // Функция обновления состояния кнопки
 function updateUndoButtonState() {
@@ -690,11 +753,13 @@ function removePair(cell1, cell2) {
   grid[cell2.row][cell2.col] = null;
   renderGrid();
   selectedCells = [];
-  // handlePairRemoval();
-  // updateHints();
+  
+
+   
 
   canUndo = true;
   updateUndoButtonState();
+  // updateHints();//--------------------------------
 }
 // Очистка выделения
 function clearSelection() {
@@ -739,124 +804,147 @@ function checkPair() {
 
 // Результаты
 function countValidPairs() {
-  if (!grid || grid.length === 0) return "0";
+  if (!grid || grid.length === 0) return 0;
 
   const COLS = 9;
   const rows = grid.length;
   let count = 0;
   const visited = new Set();
 
-  function checkDirection(row, col, dRow, dCol) {
-    const num = grid[row][col];
-    let r = row + dRow;
-    let c = col + dCol;
+  function isValidCell(r, c) {
+    return r >= 0 && r < rows && c >= 0 && c < COLS && grid[r][c] !== null;
+  }
 
-    while (r >= 0 && r < rows && c >= 0 && c < COLS) {
-      const target = grid[r][c];
-      if (target === null) {
-        r += dRow;
-        c += dCol;
-        continue;
-      }
-
-      const key = [row, col, r, c].sort((a, b) => a - b).join(",");
-      if (visited.has(key)) break;
-
-      const isSame = num === target;
-      const isSum10 = num + target === 10;
-
-      if (isSame || isSum10) {
-        visited.add(key);
-        count++;
-      }
-      break;
-    }
+  function addPair(r1, c1, r2, c2) {
+    // Формируем ключ с гарантированным порядком координат
+    const [minR, maxR] = [r1, r2].sort((a, b) => a - b);
+    const [minC, maxC] = [c1, c2].sort((a, b) => a - b);
+    const key = `${minR},${minC},${maxR},${maxC}`;
+    return key;
   }
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < COLS; col++) {
-      const num = grid[row]?.[col];
-      if (num === null || num === undefined) continue;
+      if (!isValidCell(row, col)) continue;
+      
+      const current = grid[row][col];
 
-      // Проверяем вправо и вниз
-      checkDirection(row, col, 0, 1); // →
-      checkDirection(row, col, 1, 0); // ↓
+      // Проверяем вправо
+      if (isValidCell(row, col + 1)) {
+        const right = grid[row][col + 1];
+        const key = addPair(row, col, row, col + 1);
+        if (!visited.has(key)) {
+          if (current === right || current + right === 10) {
+            visited.add(key);
+            count++;
+          }
+        }
+      }
 
-      if (count >= 5) return "5+";
+      // Проверяем вниз
+      if (isValidCell(row + 1, col)) {
+        const down = grid[row + 1][col];
+        const key = addPair(row, col, row + 1, col);
+        if (!visited.has(key)) {
+          if (current === down || current + down === 10) {
+            visited.add(key);
+            count++;
+          }
+        }
+      }
     }
   }
 
-  return count.toString();
+  return count;
 }
 
-function updateHints() {
-  if (!grid || grid.length === 0) return;
-
-  try {
-    const hintCount = countValidPairs();
-    document.getElementById("hint-display").textContent = `Hints: ${hintCount}`;
-  } catch (error) {
-    console.error("Ошибка при обновлении хинтов:", error);
-  }
-}
-
-// Функция отмены Revert
-function undoLastMove() {
-  if (!canUndo || !lastRemovedPair) return;
-
-  const { cell1, cell2, num1, num2 } = lastRemovedPair;
-
-  // Возвращаем цифры на поле
-  grid[cell1.row][cell1.col] = num1;
-  grid[cell2.row][cell2.col] = num2;
-
-  // Вычисляем очки за пару (без изменения score)
-  const points = updateScore(num1, num2);
-  score -= points; // Корректно вычитаем
-
-  // score -= updateScore(num1, num2);
-  // scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
-
-  // Обновляем отображение счёта
-  if (scoreDisplay) {
-    scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
-  }
-
-  // Перерисовываем поле
-  renderGrid();
-
-  // Очищаем выделение
-  selectedCells = [];
-  const allCells = document.querySelectorAll("#game-grid td");
-  allCells.forEach((cell) => cell.classList.remove("selected"));
-
-  // Сбрасываем состояние отмены
-  canUndo = false;
-  lastRemovedPair = null;
-
-  updateHints();
-  updateUndoButtonState();
-}
-
-// // Обновляем отображение подсказок
-// function updateHintDisplay() {
-//   hintCount = countValidPairs();
-//   hintDisplay.textContent = `Hints: ${hintCount}`;
-// }
 
 // Обработчик клика
 function showHint() {
+  if (hintCount >= MAX_HINTS) {
+    alert("No more hints available!");
+    return;
+  }
+
   const hint = getHint();
   if (hint) {
     highlightHint(hint);
-
-    // hintCount++;
-    // hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
-    // updateHintDisplay(); // если есть счётчик подсказок
-
+    hintCount++; // Увеличиваем счётчик использованных подсказок
+    updateHintCounterDisplay(); // Обновляем отображение
     console.log("Использована подсказка");
   } else {
-    alert("There is no hint");
+    alert("No hint available");
+  }
+}
+
+
+// ------------------------------------------------------------------------------------------------
+
+// Функция обновления подсказок
+        function updateHints() {
+  if (!grid || !Array.isArray(grid) || grid.length === 0) {
+    console.warn("Сетка пуста или не определена");
+    return;
+  }
+
+  const hintElement = document.getElementById("hint-display");
+  if (!hintElement) {
+    console.error("Элемент hint-display не найден в DOM");
+    return;
+  }
+
+  const hintText = getHintCounterText();
+    hintDisplay.textContent = `${hintText}`;
+
+  if (typeof countValidPairs !== 'function') {
+    console.error("Функция countValidPairs не определена");
+    hintElement.textContent = "Ошибка системы";
+    return;
+  }
+
+  try {
+    const hintCount = countValidPairs(); // это число
+
+    if (typeof hintCount !== 'number' || hintCount < 0) {
+      throw new Error("Некорректный результат подсчета пар");
+    }
+
+    const displayText = hintCount >= 6 ? "5+" : hintCount.toString();
+    hintElement.textContent = `Hints: ${displayText}`;
+
+    console.log(`Обновлены подсказки: ${hintElement.textContent}`);
+  } catch (error) {
+    console.error("Произошла ошибка при обновлении подсказок:", error.message);
+    hintElement.textContent = "Ошибка подсчета пар";
+  } finally {
+    if (hintElement) {
+      hintElement.classList.add('updated');
+      setTimeout(() => {
+        hintElement.classList.remove('updated');
+      }, 1000);
+    }
+  }
+}
+
+// // Обновляем отображение счетчика подсказок
+// function updateHintCounter() {
+//     hintCounterDisplay.textContent = `Использовано подсказок: ${hintsUsed}/${MAX_HINTS}`;
+// }
+// Обработчик клика
+function showHint() {
+  if (hintCount >= MAX_HINTS) {
+    alert("No more hints available!");
+    return;
+  }
+
+  const hint = getHint();
+  if (hint) {
+    highlightHint(hint);
+    hintCount++; // Увеличиваем счётчик использованных подсказок
+    updateHintCounterDisplay(); // Обновляем отображение
+    console.log("Использована подсказка");
+  } else {
+    alert("No hint available");
   }
 }
 
@@ -931,6 +1019,96 @@ function highlightHint(hint) {
     cell2Element.classList.remove("hint");
   }, 3000);
 }
+
+// // Функция поиска доступной пары для подсказки
+// function findAvailablePair() {
+//     if (!grid || grid.length === 0) return null;
+    
+//     const rows = grid.length;
+//     const cols = grid[0]?.length || 0;
+    
+//     for (let row1 = 0; row1 < rows; row1++) {
+//         for (let col1 = 0; col1 < cols; col1++) {
+//             if (grid[row1][col1] === null) continue;
+            
+//             // Проверяем вправо
+//             if (col1 + 1 < cols && grid[row1][col1 + 1] !== null) {
+//                 if (isAdjacent({row: row1, col: col1}, {row: row1, col: col1 + 1}) && 
+//                     isValidPair(grid[row1][col1], grid[row1][col1 + 1])) {
+//                     return [
+//                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col1 + 1})`),
+//                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col2 + 2})`)
+//                     ];
+//                 }
+//             }
+            
+//             // Проверяем вниз
+//             if (row1 + 1 < rows && grid[row1 + 1][col1] !== null) {
+//                 if (isAdjacent({row: row1, col: col1}, {row: row1 + 1, col: col1}) && 
+//                     isValidPair(grid[row1][col1], grid[row1 + 1][col1])) {
+//                     return [
+//                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col1 + 1})`),
+//                         document.querySelector(`#game-grid tr:nth-child(${row2 + 2}) td:nth-child(${col1 + 1})`)
+//                     ];
+//                 }
+//             }
+//         }
+//     }
+    
+//     return null;
+// }
+
+
+
+
+
+
+
+// -------------------------------------------------------------------------------------------------
+// Функция отмены Revert
+function undoLastMove() {
+  if (!canUndo || !lastRemovedPair) return;
+
+  const { cell1, cell2, num1, num2 } = lastRemovedPair;
+
+  // Возвращаем цифры на поле
+  grid[cell1.row][cell1.col] = num1;
+  grid[cell2.row][cell2.col] = num2;
+
+  // Вычисляем очки за пару (без изменения score)
+  const points = updateScore(num1, num2);
+  score -= points; // Корректно вычитаем
+
+  // score -= updateScore(num1, num2);
+  // scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+
+  // Обновляем отображение счёта
+  if (scoreDisplay) {
+    scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
+  }
+
+  // Перерисовываем поле
+  renderGrid();
+
+  // Очищаем выделение
+  selectedCells = [];
+  const allCells = document.querySelectorAll("#game-grid td");
+  allCells.forEach((cell) => cell.classList.remove("selected"));
+
+  // Сбрасываем состояние отмены
+  canUndo = false;
+  lastRemovedPair = null;
+
+  // updateHints();
+  updateUndoButtonState();
+}
+
+// // Обновляем отображение подсказок
+// function updateHintDisplay() {
+//   hintCount = countValidPairs();
+//   hintDisplay.textContent = `Hints: ${hintCount}`;
+// }
+
 
 // Логика работы кнопка  Result
 function showResults() {
@@ -1085,7 +1263,7 @@ function loadGameState() {
   scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
   updateTimerDisplay();
   updateUndoButtonState();
-  updateHints();
+  // updateHints();
 
   // Если таймер был запущен, возобновляем его
   if (isTimerRunning) {
@@ -1173,6 +1351,8 @@ function shuffleGrid() {
 
   // Обновляем текст на кнопке
   shuffleButton.textContent = `Shuffle (${shuffleCount}/${MAX_SHUFFLE_USES})`;
+  // Обновляем подсказки после перемешивания
+    updateHints();
 }
 
 // Добавляем обработчик для сброса счетчика перемешиваний при начале новой игры
@@ -1188,3 +1368,69 @@ function checkWin() {
     // логик завершения игры
   }
 }
+
+
+
+// // Функция обновления счётчика
+// function updateHintDisplay(count) {
+//   hintCount = count;
+//   const displayText = hintCount > MAX_HINT_DISPLAY ? "Hints: 5+" : `Hints: ${hintCount}`;
+//   hintDisplay.textContent = displayText;
+// }
+
+// Функция для подсчета всех возможных подсказок
+// Функция подсчета доступных подсказок
+function countHints() {
+    if (!grid || grid.length === 0) return 0;
+    
+    const rows = grid.length;
+    const cols = grid[0]?.length || 0;
+    let hintsCount = 0;
+    
+    // Проверяем все возможные пары в сетке
+    for (let row1 = 0; row1 < rows; row1++) {
+        for (let col1 = 0; col1 < cols; col1++) {
+            if (grid[row1][col1] === null) continue;
+            
+            // Проверяем вправо
+            if (col1 + 1 < cols && grid[row1][col1 + 1] !== null) {
+                if (isAdjacent({row: row1, col: col1}, {row: row1, col: col1 + 1}) && 
+                    isValidPair(grid[row1][col1], grid[row1][col1 + 1])) {
+                    hintsCount++;
+                }
+            }
+            
+            // Проверяем вниз
+            if (row1 + 1 < rows && grid[row1 + 1][col1] !== null) {
+                if (isAdjacent({row: row1, col: col1}, {row: row1 + 1, col: col1}) && 
+                    isValidPair(grid[row1][col1], grid[row1 + 1][col1])) {
+                    hintsCount++;
+                }
+            }
+        }
+    }
+    
+    return hintsCount;
+}
+
+// Функция для получения текста счетчика подсказок
+function getHintCounterText() {
+    const totalHints = countHints();
+    
+    if (totalHints > 5) {
+        return `Hint: 5+`;
+    } else {
+        // Создаем массив с обратным отсчетом
+        const counterArray = [];
+        for (let i = totalHints; i > 0; i--) {
+            counterArray.push(i);
+        }
+        return `Hint: ${counterArray.join(', ')}`;
+    }
+}
+
+
+
+
+
+

@@ -45,12 +45,16 @@ let saveButton;
 let continueButton;
 let loadButton;
 
-
 let hintElement;
 let shuffleButton;
 let hintCount = 0; // Сколько раз использовано подсказок
-const MAX_HINTS = 5; // Максимум подсказок за игру
+const MAX_HINTS = 25; // Максимум подсказок за игру
 let availablePairs = 0; // Количество валидных пар на поле (обновляется динамически)
+
+
+let highlightedPair = null; // Хранит подсвеченную пару
+let isHintUsed = false; // Флаг использования подсказки
+
 
 
 // Функция создания UI элементов
@@ -774,6 +778,19 @@ function checkPair() {
   const num1 = grid[cell1.row][cell1.col];
   const num2 = grid[cell2.row][cell2.col];
 
+  // Проверяем, совпадает ли выбранная пара с подсвеченной подсказкой
+   // Проверяем, совпадает ли с подсказкой
+  if (highlightedPair &&
+      ((cell1.row === highlightedPair.cell1.row && cell1.col === highlightedPair.cell1.col &&
+        cell2.row === highlightedPair.cell2.row && cell2.col === highlightedPair.cell2.col) ||
+       (cell2.row === highlightedPair.cell1.row && cell2.col === highlightedPair.cell1.col &&
+        cell1.row === highlightedPair.cell2.row && cell1.col === highlightedPair.cell2.col))) {
+    
+    hintCount++;
+    updateHintCounterDisplay();
+    console.log("Пара из подсказки удалена, hintCount увеличен:", hintCount);
+    highlightedPair = null; // сбрасываем
+  }
   // Проверяем условия для удаления пары
   if (isAdjacent(cell1, cell2) && isValidPair(num1, num2)) {
     // Удаляем пару из сетки
@@ -857,27 +874,6 @@ function countValidPairs() {
 
   return count;
 }
-
-
-// Обработчик клика
-function showHint() {
-  if (hintCount >= MAX_HINTS) {
-    alert("No more hints available!");
-    return;
-  }
-
-  const hint = getHint();
-  if (hint) {
-    highlightHint(hint);
-    hintCount++; // Увеличиваем счётчик использованных подсказок
-    updateHintCounterDisplay(); // Обновляем отображение
-    console.log("Использована подсказка");
-  } else {
-    alert("No hint available");
-  }
-}
-
-
 // ------------------------------------------------------------------------------------------------
 
 // Функция обновления подсказок
@@ -940,8 +936,13 @@ function showHint() {
   const hint = getHint();
   if (hint) {
     highlightHint(hint);
-    hintCount++; // Увеличиваем счётчик использованных подсказок
-    updateHintCounterDisplay(); // Обновляем отображение
+
+    highlightedPair = hint; // Сохраняем подсвеченную пару
+    isHintUsed = true; // Устанавливаем флаг
+
+
+    // hintCount++; // Увеличиваем счётчик использованных подсказок
+    // updateHintCounterDisplay(); // Обновляем отображение
     console.log("Использована подсказка");
   } else {
     alert("No hint available");
@@ -997,7 +998,9 @@ const isSameOrSum10 = (num1, num2) => {
 };
 // подсветки найденной пары
 function highlightHint(hint) {
-  if (!hint) return;
+   if (!hint) return;
+
+
 
   const { cell1, cell2 } = hint;
 
@@ -1009,6 +1012,8 @@ function highlightHint(hint) {
     `tr:nth-child(${cell2.row + 1}) td:nth-child(${cell2.col + 1})`
   );
 
+
+  
   // Добавляем класс подсветки
   cell1Element.classList.add("hint");
   cell2Element.classList.add("hint");
@@ -1019,6 +1024,14 @@ function highlightHint(hint) {
     cell2Element.classList.remove("hint");
   }, 3000);
 }
+
+function clearHintHighlight() {
+    const highlightedCells = document.querySelectorAll('.hint-highlight');
+    highlightedCells.forEach(cell => cell.classList.remove('hint-highlight'));
+}
+
+
+
 
 // // Функция поиска доступной пары для подсказки
 // function findAvailablePair() {

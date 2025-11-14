@@ -54,10 +54,11 @@ let availablePairs = 0; // Количество валидных пар на п�
 
 let highlightedPair = null; // Хранит подсвеченную пару
 let isHintUsed = false; // Флаг использования подсказки
+let restartButton;
+let lossMessage;
+let modal;
 
-
-
-// Функция создания UI элементов
+// Функция создания UI элементов 
 function createUIElements() {
   // Создаем основной контейнер
   let uiContainer = document.createElement("div");
@@ -218,6 +219,7 @@ function createGameElements() {
 }
 // Счётчик использованных подсказок
 function updateHintCounterDisplay() {
+  const hintElement = document.getElementById("hint-display");
   if (hintCounterDisplay) {
     hintCounterDisplay.textContent =
         `Hints used: ${hintCount}/${MAX_HINTS}`;
@@ -275,15 +277,7 @@ function createLoadButton() {
   }
 }
 
-// // Создаем элемент отображения счетчика подсказок
-// function createHintCounter() {
-//     if (!hintCounterDisplay) {
-//         hintCounterDisplay = document.createElement("div");
-//         hintCounterDisplay.id = "hint-counter";
-//         hintCounterDisplay.textContent = `Hint: 0/${MAX_HINTS}`;
-//         gameInfoContainer.appendChild(hintCounterDisplay);
-//     }
-// }
+
 
 // Функция для создания и настройки кнопки Revert
 function createRevertButton() {
@@ -383,7 +377,9 @@ function startGame(selectedMode) {
   createGameElements();
   createShuffleButton();
   resetShuffleCount(); // Добавляем сброс счетчика
-  
+
+
+
 
   // Генерируем сетку в зависимости от режима
   switch (mode) {
@@ -505,15 +501,19 @@ function renderGrid() {
     gridTable.appendChild(tr);
   });
   // Обновляем подсказки после рендера
-    updateHints();
+//     updateHints();
+// }
 }
 
+// Функция остановки таймера
 function stopTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
     isTimerRunning = false;
   }
 }
+
+
 
 // Функция добавление новых строк в игровое поле в классическом режиме
 function addClassicRows() {
@@ -575,6 +575,11 @@ function generateRandomGrid() {
   }, []);
 }
 
+
+
+
+
+
 // Функция добавление новых строк в игровое поле в Random mode
 function addRandomRow() {
   // Проверяем, можно ли добавить новую строку
@@ -591,6 +596,10 @@ function addRandomRow() {
   grid.push(newRow);
   renderGrid();
 }
+
+
+
+
 // Функция добавления хаотичной строки
 function addChaoticRow() {
   // Проверяем, можно ли добавить новую строку
@@ -638,6 +647,9 @@ function handleClick(cell, col, row) {
   }
   updateHints();
 }
+
+
+
 
 // Проверка смежности ячеек
 function isAdjacent(cell1, cell2) {
@@ -719,10 +731,15 @@ function updateUndoButtonState() {
   }
 }
 
+
+
 // Проверка валидности пары
 function isValidPair(num1, num2) {
   return num1 === num2 || num1 + num2 === 10;
 }
+
+
+
 // Обновление Score
 function updateScore(num1, num2) {
   if (num1 === undefined || num2 === undefined) {
@@ -744,6 +761,8 @@ function updateScore(num1, num2) {
   // ).textContent = `Score: ${score}/${TARGET_SCORE}`;
 }
 
+
+
 // Удаление пары ячеек
 function removePair(cell1, cell2) {
   lastRemovedPair = {
@@ -763,14 +782,20 @@ function removePair(cell1, cell2) {
 
   canUndo = true;
   updateUndoButtonState();
-  // updateHints();//--------------------------------
+  // Обновляем доступные пары после удаления
+    updateHints();
 }
+
+
+
 // Очистка выделения
 function clearSelection() {
   selectedCells = [];
   renderGrid();
   // updateHints();
 }
+
+
 
 // Функция проверки пары ячеек
 function checkPair() {
@@ -779,7 +804,7 @@ function checkPair() {
   const num2 = grid[cell2.row][cell2.col];
 
   // Проверяем, совпадает ли выбранная пара с подсвеченной подсказкой
-   // Проверяем, совпадает ли с подсказкой
+  
   if (highlightedPair &&
       ((cell1.row === highlightedPair.cell1.row && cell1.col === highlightedPair.cell1.col &&
         cell2.row === highlightedPair.cell2.row && cell2.col === highlightedPair.cell2.col) ||
@@ -811,15 +836,23 @@ function checkPair() {
       scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
     }
 
-    // Проверяем победу
-    // checkWin();
-  } else {
-    alert("Wrong pair!");
-    clearSelection();
-  }
+   // Проверяем победу после каждого успешного хода
+        if (checkWin()) return;
+        
+        // Обновляем доступные пары
+        updateHints();
+    } else {
+        alert("Wrong pair!");
+        clearSelection();
+}
+// Проверяем поражение после каждого хода
+    checkLoss();
 }
 
-// Результаты
+
+
+
+// Результаты подсчета пар
 function countValidPairs() {
   if (!grid || grid.length === 0) return 0;
 
@@ -920,12 +953,30 @@ function countValidPairs() {
       }, 1000);
     }
   }
+
+const availablePairs = countValidPairs();
+    
+    // Обновляем отображение доступных пар
+    if (hintDisplay) {
+        hintDisplay.textContent = `Available pairs: ${availablePairs}`;
+    }
+    
+    // Если нет доступных пар, проверяем поражение
+    if (availablePairs === 0) {
+        checkLoss();
+    }
+
+
+
 }
 
 // // Обновляем отображение счетчика подсказок
 // function updateHintCounter() {
 //     hintCounterDisplay.textContent = `Использовано подсказок: ${hintsUsed}/${MAX_HINTS}`;
 // }
+
+
+
 // Обработчик клика
 function showHint() {
   if (hintCount >= MAX_HINTS) {
@@ -948,6 +999,8 @@ function showHint() {
     alert("No hint available");
   }
 }
+
+
 
 // функцию для поиска подсказки
 function getHint() {
@@ -1123,6 +1176,8 @@ function undoLastMove() {
 // }
 
 
+
+
 // Логика работы кнопка  Result
 function showResults() {
   const records = JSON.parse(localStorage.getItem("highScores")) || [];
@@ -1161,7 +1216,7 @@ function showResults() {
     });
     table.appendChild(headerRow);
 
-    records.forEach((r, i) => {
+    records.slice(0, 5).forEach((r, i) => {
       const row = document.createElement("tr");
       [i + 1, r.score, r.time, r.mode].forEach((val) => {
         const td = document.createElement("td");
@@ -1225,6 +1280,8 @@ function resetGame() {
   resetShuffleCount(); // Добавляем сброс счетчика
 }
 
+
+
 // Функция сохранения состояния игры
 function saveGameState() {
   const gameState = {
@@ -1241,12 +1298,16 @@ function saveGameState() {
     hintCount: hintCount,
   };
 
+
+
   // Сохраняем в localStorage
   localStorage.setItem("savedGame", JSON.stringify(gameState));
   alert("Game saved!");
   // Сохраняем количество использованных перемешиваний
   localStorage.setItem("shuffleCount", shuffleCount);
 }
+
+
 
 // Функция загрузки сохранённой игры
 function loadGameState() {
@@ -1391,7 +1452,7 @@ function checkWin() {
 //   hintDisplay.textContent = displayText;
 // }
 
-// Функция для подсчета всех возможных подсказок
+
 // Функция подсчета доступных подсказок
 function countHints() {
     if (!grid || grid.length === 0) return 0;
@@ -1426,6 +1487,9 @@ function countHints() {
     return hintsCount;
 }
 
+
+
+
 // Функция для получения текста счетчика подсказок
 function getHintCounterText() {
     const totalHints = countHints();
@@ -1443,7 +1507,117 @@ function getHintCounterText() {
 }
 
 
+// ------------------------------------------------------------
+
+function getHintDisplayText(validMoveCount) {
+  if (typeof validMoveCount !== 'number' || validMoveCount < 0) return '0';
+  return validMoveCount >= 6 ? '5+' : String(validMoveCount);
+}
+
+function updateHintsDisplay() {
+  const hintElement = document.getElementById("hint-display");
+  if (!hintElement) return;
+
+  const validMoves = countValidPairs(); // функция, которая считает доступные ходы
+  const displayText = getHintDisplayText(validMoves);
+
+  hintElement.textContent = `Hints: ${displayText}`;
+}
 
 
+// ----------------------------------------------------------------------
 
+// Создаем базовую структуру модального окна для GameOver
+function createModal() {
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'game-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        `;
+        
+        const modalContent = document.createElement('div');
+        modalContent.id = 'modal-content';
+        modalContent.style.cssText = `
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+        `;
+        
+        const modalMessage = document.createElement('p');
+        modalMessage.id = 'modal-message';
+        
+        const modalButton = document.createElement('button');
+        modalButton.id = 'modal-button';
+        
+        modalContent.appendChild(modalMessage);
+        modalContent.appendChild(modalButton);
+        modal.appendChild(modalContent);
+        
+        document.body.appendChild(modal);
+    }
+}
 
+// Обновляем функции отображения результатов
+function showWinMessage() {
+    createModal();
+    
+    modal.style.display = 'flex';
+    document.getElementById('modal-message').textContent = 
+        `Congratulations! You won in ${timer} seconds!`;
+    document.getElementById('modal-button').textContent = 'Play Again';
+    
+    document.getElementById('modal-button').onclick = () => {
+        restartGame();
+    };
+}
+
+function showLossMessage() {
+    createModal();
+    
+    modal.style.display = 'flex';
+    document.getElementById('modal-message').textContent = 'Game Over! No more valid pairs.';
+    document.getElementById('modal-button').textContent = 'Try Again';
+    
+    document.getElementById('modal-button').onclick = () => {
+        restartGame();
+    };
+}
+
+// Функция перезапуска игры
+function restartGame() {
+    modal.style.display = 'none';
+    startGame(currentMode);
+}
+
+// Обновляем проверки на победу и поражение
+function checkWin() {
+    if (score >= TARGET_SCORE) {
+        stopTimer();
+        showWinMessage();
+        return true;
+    }
+    return false;
+}
+
+function checkLoss() {
+    const availablePairs = countValidPairs();
+    if (availablePairs === 0) {
+        stopTimer();
+        showLossMessage();
+        return true;
+    }
+    return false;
+}
+// ------------------------------------------------------------

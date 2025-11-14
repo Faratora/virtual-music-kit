@@ -4,8 +4,8 @@ const MAX_SHUFFLE_USES = 5;
 const GRID_SIZE = 9;
 let gameContainer;
 let hintsUsed = 0;
-
-
+let eraseCount = 0;
+let selectedCellForRemove = null;
 
 let hintDisplay;
 let timerDisplay;
@@ -51,14 +51,14 @@ let hintCount = 0; // Сколько раз использовано подск�
 const MAX_HINTS = 25; // Максимум подсказок за игру
 let availablePairs = 0; // Количество валидных пар на поле (обновляется динамически)
 
-
 let highlightedPair = null; // Хранит подсвеченную пару
 let isHintUsed = false; // Флаг использования подсказки
 let restartButton;
 let lossMessage;
 let modal;
+let removeButton;
 
-// Функция создания UI элементов 
+// Функция создания UI элементов
 function createUIElements() {
   // Создаем основной контейнер
   let uiContainer = document.createElement("div");
@@ -162,9 +162,9 @@ function createGameElements() {
     hintDisplay.id = "hint-display";
     gameInfoContainer.appendChild(hintDisplay);
   }
- hintDisplay.textContent = "Hints: 0";
+  hintDisplay.textContent = "Hints: 0";
 
- // Счётчик использованных подсказок
+  // Счётчик использованных подсказок
   function createHintCounter() {
     if (!hintCounterDisplay) {
       hintCounterDisplay = document.createElement("div");
@@ -215,14 +215,14 @@ function createGameElements() {
   getHintCounterText();
   countHints();
   createHintCounter(); // Создаём счётчик использованных подсказок*
-  
+  createRemoveButton();
+  resetEraseCount();
 }
 // Счётчик использованных подсказок
 function updateHintCounterDisplay() {
   const hintElement = document.getElementById("hint-display");
   if (hintCounterDisplay) {
-    hintCounterDisplay.textContent =
-        `Hints used: ${hintCount}/${MAX_HINTS}`;
+    hintCounterDisplay.textContent = `Hints used: ${hintCount}/${MAX_HINTS}`;
   }
 }
 // // Счётчик использованных подсказок
@@ -276,8 +276,6 @@ function createLoadButton() {
     gameInfoContainer.appendChild(loadButton);
   }
 }
-
-
 
 // Функция для создания и настройки кнопки Revert
 function createRevertButton() {
@@ -362,10 +360,6 @@ function specificModeButton() {
   }
 }
 
-
-
-
-
 // Функция запуска игры
 function startGame(selectedMode) {
   mode = selectedMode;
@@ -377,9 +371,6 @@ function startGame(selectedMode) {
   createGameElements();
   createShuffleButton();
   resetShuffleCount(); // Добавляем сброс счетчика
-
-
-
 
   // Генерируем сетку в зависимости от режима
   switch (mode) {
@@ -500,9 +491,14 @@ function renderGrid() {
 
     gridTable.appendChild(tr);
   });
+
+  // Сбрасываем выделение при перерисовке
+  selectedCellForRemove = null;
+  // updateScoreDisplay();
+  updateHints();
   // Обновляем подсказки после рендера
-//     updateHints();
-// }
+  //     updateHints();
+  // }
 }
 
 // Функция остановки таймера
@@ -512,8 +508,6 @@ function stopTimer() {
     isTimerRunning = false;
   }
 }
-
-
 
 // Функция добавление новых строк в игровое поле в классическом режиме
 function addClassicRows() {
@@ -575,11 +569,6 @@ function generateRandomGrid() {
   }, []);
 }
 
-
-
-
-
-
 // Функция добавление новых строк в игровое поле в Random mode
 function addRandomRow() {
   // Проверяем, можно ли добавить новую строку
@@ -596,9 +585,6 @@ function addRandomRow() {
   grid.push(newRow);
   renderGrid();
 }
-
-
-
 
 // Функция добавления хаотичной строки
 function addChaoticRow() {
@@ -618,8 +604,6 @@ function generateChaoticGrid() {
   );
 }
 
-
-
 // Функция обработки выбранных ячеек
 function handleClick(cell, col, row) {
   if (selectedCells.length === 2) return;
@@ -632,8 +616,8 @@ function handleClick(cell, col, row) {
   );
 
   if (alreadySelected) {
-     // Удаление ячейки из выбранных
-   selectedCells = selectedCells.filter(
+    // Удаление ячейки из выбранных
+    selectedCells = selectedCells.filter(
       ({ row: r, col: c }) => !(r === row && c === col)
     );
     cell.classList.remove("selected");
@@ -646,10 +630,19 @@ function handleClick(cell, col, row) {
     // checkWin();
   }
   updateHints();
+
+  // Получаем значение ячейки
+  const cellValue = grid[row][col];
+
+  // Если ячейка уже пустая - выходим
+  if (!cellValue) return;
+
+  // Запоминаем выбранную ячейку для удаления через кнопку
+  selectedCellForRemove = cellIndex;
+
+  // Добавляем визуальное выделение выбранной ячейки
+  cell.classList.add("selected-for-remove");
 }
-
-
-
 
 // Проверка смежности ячеек
 function isAdjacent(cell1, cell2) {
@@ -664,7 +657,7 @@ function isAdjacent(cell1, cell2) {
   }
 
   // Проверка в одной строке с пустыми ячейками между
- if (r1 === r2) {
+  if (r1 === r2) {
     const [startCol, endCol] = c1 < c2 ? [c1, c2] : [c2, c1];
     for (let c = startCol + 1; c < endCol; c++) {
       if (grid[r1][c] !== null) {
@@ -674,7 +667,7 @@ function isAdjacent(cell1, cell2) {
     return true;
   }
 
-    // Проверка в одном столбце с пустыми ячейками между
+  // Проверка в одном столбце с пустыми ячейками между
   if (c1 === c2) {
     const [startRow, endRow] = r1 < r2 ? [r1, r2] : [r2, r1];
     for (let r = startRow + 1; r < endRow; r++) {
@@ -685,33 +678,30 @@ function isAdjacent(cell1, cell2) {
     return true;
   }
 
- // Проверка граничного случая между крайними строками
-    if (
-        // Проверка правого края первой строки и левого края второй
-        (c1 === GRID_SIZE - 1 && c2 === 0 && r2 === r1 + 1) ||
-        // Проверка левого края первой строки и правого края второй
-        (c2 === GRID_SIZE - 1 && c1 === 0 && r1 === r2 + 1) ||
-        // Проверка между первой и последней строкой
-        (Math.abs(r1 - r2) === GRID_SIZE - 1 && 
-         ((c1 === GRID_SIZE - 1 && c2 === 0) || 
-          (c2 === GRID_SIZE - 1 && c1 === 0)))
-    ) {
-        // Проверка пустых ячеек между крайними столбцами
-        const startRow = Math.min(r1, r2);
-        const endRow = Math.max(r1, r2);
-        for (let r = startRow + 1; r < endRow; r++) {
-            if (grid[r][0] !== null || grid[r][GRID_SIZE - 1] !== null) {
-                return false;
-            }
-        }
-        return true;
+  // Проверка граничного случая между крайними строками
+  if (
+    // Проверка правого края первой строки и левого края второй
+    (c1 === GRID_SIZE - 1 && c2 === 0 && r2 === r1 + 1) ||
+    // Проверка левого края первой строки и правого края второй
+    (c2 === GRID_SIZE - 1 && c1 === 0 && r1 === r2 + 1) ||
+    // Проверка между первой и последней строкой
+    (Math.abs(r1 - r2) === GRID_SIZE - 1 &&
+      ((c1 === GRID_SIZE - 1 && c2 === 0) ||
+        (c2 === GRID_SIZE - 1 && c1 === 0)))
+  ) {
+    // Проверка пустых ячеек между крайними столбцами
+    const startRow = Math.min(r1, r2);
+    const endRow = Math.max(r1, r2);
+    for (let r = startRow + 1; r < endRow; r++) {
+      if (grid[r][0] !== null || grid[r][GRID_SIZE - 1] !== null) {
+        return false;
+      }
     }
+    return true;
+  }
 
-    return false;
+  return false;
 }
-
-
-
 
 // Функция обновления состояния кнопки
 function updateUndoButtonState() {
@@ -731,14 +721,10 @@ function updateUndoButtonState() {
   }
 }
 
-
-
 // Проверка валидности пары
 function isValidPair(num1, num2) {
   return num1 === num2 || num1 + num2 === 10;
 }
-
-
 
 // Обновление Score
 function updateScore(num1, num2) {
@@ -761,8 +747,6 @@ function updateScore(num1, num2) {
   // ).textContent = `Score: ${score}/${TARGET_SCORE}`;
 }
 
-
-
 // Удаление пары ячеек
 function removePair(cell1, cell2) {
   lastRemovedPair = {
@@ -776,17 +760,12 @@ function removePair(cell1, cell2) {
   grid[cell2.row][cell2.col] = null;
   renderGrid();
   selectedCells = [];
-  
-
-   
 
   canUndo = true;
   updateUndoButtonState();
   // Обновляем доступные пары после удаления
-    updateHints();
+  updateHints();
 }
-
-
 
 // Очистка выделения
 function clearSelection() {
@@ -795,8 +774,6 @@ function clearSelection() {
   // updateHints();
 }
 
-
-
 // Функция проверки пары ячеек
 function checkPair() {
   const [cell1, cell2] = selectedCells;
@@ -804,13 +781,18 @@ function checkPair() {
   const num2 = grid[cell2.row][cell2.col];
 
   // Проверяем, совпадает ли выбранная пара с подсвеченной подсказкой
-  
-  if (highlightedPair &&
-      ((cell1.row === highlightedPair.cell1.row && cell1.col === highlightedPair.cell1.col &&
-        cell2.row === highlightedPair.cell2.row && cell2.col === highlightedPair.cell2.col) ||
-       (cell2.row === highlightedPair.cell1.row && cell2.col === highlightedPair.cell1.col &&
-        cell1.row === highlightedPair.cell2.row && cell1.col === highlightedPair.cell2.col))) {
-    
+
+  if (
+    highlightedPair &&
+    ((cell1.row === highlightedPair.cell1.row &&
+      cell1.col === highlightedPair.cell1.col &&
+      cell2.row === highlightedPair.cell2.row &&
+      cell2.col === highlightedPair.cell2.col) ||
+      (cell2.row === highlightedPair.cell1.row &&
+        cell2.col === highlightedPair.cell1.col &&
+        cell1.row === highlightedPair.cell2.row &&
+        cell1.col === highlightedPair.cell2.col))
+  ) {
     hintCount++;
     updateHintCounterDisplay();
     console.log("Пара из подсказки удалена, hintCount увеличен:", hintCount);
@@ -836,21 +818,18 @@ function checkPair() {
       scoreDisplay.textContent = `Score: ${score}/${TARGET_SCORE}`;
     }
 
-   // Проверяем победу после каждого успешного хода
-        if (checkWin()) return;
-        
-        // Обновляем доступные пары
-        updateHints();
-    } else {
-        alert("Wrong pair!");
-        clearSelection();
+    // Проверяем победу после каждого успешного хода
+    if (checkWin()) return;
+
+    // Обновляем доступные пары
+    updateHints();
+  } else {
+    alert("Wrong pair!");
+    clearSelection();
+  }
+  // Проверяем поражение после каждого хода
+  checkLoss();
 }
-// Проверяем поражение после каждого хода
-    checkLoss();
-}
-
-
-
 
 // Результаты подсчета пар
 function countValidPairs() {
@@ -876,7 +855,7 @@ function countValidPairs() {
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < COLS; col++) {
       if (!isValidCell(row, col)) continue;
-      
+
       const current = grid[row][col];
 
       // Проверяем вправо
@@ -910,7 +889,7 @@ function countValidPairs() {
 // ------------------------------------------------------------------------------------------------
 
 // Функция обновления подсказок
-        function updateHints() {
+function updateHints() {
   if (!grid || !Array.isArray(grid) || grid.length === 0) {
     console.warn("Сетка пуста или не определена");
     return;
@@ -923,9 +902,9 @@ function countValidPairs() {
   }
 
   const hintText = getHintCounterText();
-    hintDisplay.textContent = `${hintText}`;
+  hintDisplay.textContent = `${hintText}`;
 
-  if (typeof countValidPairs !== 'function') {
+  if (typeof countValidPairs !== "function") {
     console.error("Функция countValidPairs не определена");
     hintElement.textContent = "Ошибка системы";
     return;
@@ -934,7 +913,7 @@ function countValidPairs() {
   try {
     const hintCount = countValidPairs(); // это число
 
-    if (typeof hintCount !== 'number' || hintCount < 0) {
+    if (typeof hintCount !== "number" || hintCount < 0) {
       throw new Error("Некорректный результат подсчета пар");
     }
 
@@ -947,35 +926,30 @@ function countValidPairs() {
     hintElement.textContent = "Ошибка подсчета пар";
   } finally {
     if (hintElement) {
-      hintElement.classList.add('updated');
+      hintElement.classList.add("updated");
       setTimeout(() => {
-        hintElement.classList.remove('updated');
+        hintElement.classList.remove("updated");
       }, 1000);
     }
   }
 
-const availablePairs = countValidPairs();
-    
-    // Обновляем отображение доступных пар
-    if (hintDisplay) {
-        hintDisplay.textContent = `Available pairs: ${availablePairs}`;
-    }
-    
-    // Если нет доступных пар, проверяем поражение
-    if (availablePairs === 0) {
-        checkLoss();
-    }
+  const availablePairs = countValidPairs();
 
+  // Обновляем отображение доступных пар
+  if (hintDisplay) {
+    hintDisplay.textContent = `Available pairs: ${availablePairs}`;
+  }
 
-
+  // Если нет доступных пар, проверяем поражение
+  if (availablePairs === 0) {
+    checkLoss();
+  }
 }
 
 // // Обновляем отображение счетчика подсказок
 // function updateHintCounter() {
 //     hintCounterDisplay.textContent = `Использовано подсказок: ${hintsUsed}/${MAX_HINTS}`;
 // }
-
-
 
 // Обработчик клика
 function showHint() {
@@ -991,7 +965,6 @@ function showHint() {
     highlightedPair = hint; // Сохраняем подсвеченную пару
     isHintUsed = true; // Устанавливаем флаг
 
-
     // hintCount++; // Увеличиваем счётчик использованных подсказок
     // updateHintCounterDisplay(); // Обновляем отображение
     console.log("Использована подсказка");
@@ -999,8 +972,6 @@ function showHint() {
     alert("No hint available");
   }
 }
-
-
 
 // функцию для поиска подсказки
 function getHint() {
@@ -1051,9 +1022,7 @@ const isSameOrSum10 = (num1, num2) => {
 };
 // подсветки найденной пары
 function highlightHint(hint) {
-   if (!hint) return;
-
-
+  if (!hint) return;
 
   const { cell1, cell2 } = hint;
 
@@ -1065,8 +1034,6 @@ function highlightHint(hint) {
     `tr:nth-child(${cell2.row + 1}) td:nth-child(${cell2.col + 1})`
   );
 
-
-  
   // Добавляем класс подсветки
   cell1Element.classList.add("hint");
   cell2Element.classList.add("hint");
@@ -1079,27 +1046,24 @@ function highlightHint(hint) {
 }
 
 function clearHintHighlight() {
-    const highlightedCells = document.querySelectorAll('.hint-highlight');
-    highlightedCells.forEach(cell => cell.classList.remove('hint-highlight'));
+  const highlightedCells = document.querySelectorAll(".hint-highlight");
+  highlightedCells.forEach((cell) => cell.classList.remove("hint-highlight"));
 }
-
-
-
 
 // // Функция поиска доступной пары для подсказки
 // function findAvailablePair() {
 //     if (!grid || grid.length === 0) return null;
-    
+
 //     const rows = grid.length;
 //     const cols = grid[0]?.length || 0;
-    
+
 //     for (let row1 = 0; row1 < rows; row1++) {
 //         for (let col1 = 0; col1 < cols; col1++) {
 //             if (grid[row1][col1] === null) continue;
-            
+
 //             // Проверяем вправо
 //             if (col1 + 1 < cols && grid[row1][col1 + 1] !== null) {
-//                 if (isAdjacent({row: row1, col: col1}, {row: row1, col: col1 + 1}) && 
+//                 if (isAdjacent({row: row1, col: col1}, {row: row1, col: col1 + 1}) &&
 //                     isValidPair(grid[row1][col1], grid[row1][col1 + 1])) {
 //                     return [
 //                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col1 + 1})`),
@@ -1107,10 +1071,10 @@ function clearHintHighlight() {
 //                     ];
 //                 }
 //             }
-            
+
 //             // Проверяем вниз
 //             if (row1 + 1 < rows && grid[row1 + 1][col1] !== null) {
-//                 if (isAdjacent({row: row1, col: col1}, {row: row1 + 1, col: col1}) && 
+//                 if (isAdjacent({row: row1, col: col1}, {row: row1 + 1, col: col1}) &&
 //                     isValidPair(grid[row1][col1], grid[row1 + 1][col1])) {
 //                     return [
 //                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col1 + 1})`),
@@ -1120,15 +1084,9 @@ function clearHintHighlight() {
 //             }
 //         }
 //     }
-    
+
 //     return null;
 // }
-
-
-
-
-
-
 
 // -------------------------------------------------------------------------------------------------
 // Функция отмены Revert
@@ -1174,9 +1132,6 @@ function undoLastMove() {
 //   hintCount = countValidPairs();
 //   hintDisplay.textContent = `Hints: ${hintCount}`;
 // }
-
-
-
 
 // Логика работы кнопка  Result
 function showResults() {
@@ -1280,8 +1235,6 @@ function resetGame() {
   resetShuffleCount(); // Добавляем сброс счетчика
 }
 
-
-
 // Функция сохранения состояния игры
 function saveGameState() {
   const gameState = {
@@ -1298,16 +1251,12 @@ function saveGameState() {
     hintCount: hintCount,
   };
 
-
-
   // Сохраняем в localStorage
   localStorage.setItem("savedGame", JSON.stringify(gameState));
   alert("Game saved!");
   // Сохраняем количество использованных перемешиваний
   localStorage.setItem("shuffleCount", shuffleCount);
 }
-
-
 
 // Функция загрузки сохранённой игры
 function loadGameState() {
@@ -1385,7 +1334,7 @@ function continueGame() {
 function shuffleGrid() {
   // Проверяем количество оставшихся перемешиваний
   if (shuffleCount >= MAX_SHUFFLE_USES) {
-    alert("Превышено You've reached the maximum number of shuffles!");
+    alert("You've reached the maximum number of shuffles!");
     return;
   }
 
@@ -1426,7 +1375,7 @@ function shuffleGrid() {
   // Обновляем текст на кнопке
   shuffleButton.textContent = `Shuffle (${shuffleCount}/${MAX_SHUFFLE_USES})`;
   // Обновляем подсказки после перемешивания
-    updateHints();
+  updateHints();
 }
 
 // Добавляем обработчик для сброса счетчика перемешиваний при начале новой игры
@@ -1443,8 +1392,6 @@ function checkWin() {
   }
 }
 
-
-
 // // Функция обновления счётчика
 // function updateHintDisplay(count) {
 //   hintCount = count;
@@ -1452,66 +1399,65 @@ function checkWin() {
 //   hintDisplay.textContent = displayText;
 // }
 
-
 // Функция подсчета доступных подсказок
 function countHints() {
-    if (!grid || grid.length === 0) return 0;
-    
-    const rows = grid.length;
-    const cols = grid[0]?.length || 0;
-    let hintsCount = 0;
-    
-    // Проверяем все возможные пары в сетке
-    for (let row1 = 0; row1 < rows; row1++) {
-        for (let col1 = 0; col1 < cols; col1++) {
-            if (grid[row1][col1] === null) continue;
-            
-            // Проверяем вправо
-            if (col1 + 1 < cols && grid[row1][col1 + 1] !== null) {
-                if (isAdjacent({row: row1, col: col1}, {row: row1, col: col1 + 1}) && 
-                    isValidPair(grid[row1][col1], grid[row1][col1 + 1])) {
-                    hintsCount++;
-                }
-            }
-            
-            // Проверяем вниз
-            if (row1 + 1 < rows && grid[row1 + 1][col1] !== null) {
-                if (isAdjacent({row: row1, col: col1}, {row: row1 + 1, col: col1}) && 
-                    isValidPair(grid[row1][col1], grid[row1 + 1][col1])) {
-                    hintsCount++;
-                }
-            }
+  if (!grid || grid.length === 0) return 0;
+
+  const rows = grid.length;
+  const cols = grid[0]?.length || 0;
+  let hintsCount = 0;
+
+  // Проверяем все возможные пары в сетке
+  for (let row1 = 0; row1 < rows; row1++) {
+    for (let col1 = 0; col1 < cols; col1++) {
+      if (grid[row1][col1] === null) continue;
+
+      // Проверяем вправо
+      if (col1 + 1 < cols && grid[row1][col1 + 1] !== null) {
+        if (
+          isAdjacent({ row: row1, col: col1 }, { row: row1, col: col1 + 1 }) &&
+          isValidPair(grid[row1][col1], grid[row1][col1 + 1])
+        ) {
+          hintsCount++;
         }
+      }
+
+      // Проверяем вниз
+      if (row1 + 1 < rows && grid[row1 + 1][col1] !== null) {
+        if (
+          isAdjacent({ row: row1, col: col1 }, { row: row1 + 1, col: col1 }) &&
+          isValidPair(grid[row1][col1], grid[row1 + 1][col1])
+        ) {
+          hintsCount++;
+        }
+      }
     }
-    
-    return hintsCount;
+  }
+
+  return hintsCount;
 }
-
-
-
 
 // Функция для получения текста счетчика подсказок
 function getHintCounterText() {
-    const totalHints = countHints();
-    
-    if (totalHints > 5) {
-        return `Hint: 5+`;
-    } else {
-        // Создаем массив с обратным отсчетом
-        const counterArray = [];
-        for (let i = totalHints; i > 0; i--) {
-            counterArray.push(i);
-        }
-        return `Hint: ${counterArray.join(', ')}`;
-    }
-}
+  const totalHints = countHints();
 
+  if (totalHints > 5) {
+    return `Hint: 5+`;
+  } else {
+    // Создаем массив с обратным отсчетом
+    const counterArray = [];
+    for (let i = totalHints; i > 0; i--) {
+      counterArray.push(i);
+    }
+    return `Hint: ${counterArray.join(", ")}`;
+  }
+}
 
 // ------------------------------------------------------------
 
 function getHintDisplayText(validMoveCount) {
-  if (typeof validMoveCount !== 'number' || validMoveCount < 0) return '0';
-  return validMoveCount >= 6 ? '5+' : String(validMoveCount);
+  if (typeof validMoveCount !== "number" || validMoveCount < 0) return "0";
+  return validMoveCount >= 6 ? "5+" : String(validMoveCount);
 }
 
 function updateHintsDisplay() {
@@ -1524,15 +1470,14 @@ function updateHintsDisplay() {
   hintElement.textContent = `Hints: ${displayText}`;
 }
 
-
 // ----------------------------------------------------------------------
 
 // Создаем базовую структуру модального окна для GameOver
 function createModal() {
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'game-modal';
-        modal.style.cssText = `
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "game-modal";
+    modal.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
@@ -1544,80 +1489,145 @@ function createModal() {
             align-items: center;
             flex-direction: column;
         `;
-        
-        const modalContent = document.createElement('div');
-        modalContent.id = 'modal-content';
-        modalContent.style.cssText = `
+
+    const modalContent = document.createElement("div");
+    modalContent.id = "modal-content";
+    modalContent.style.cssText = `
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             text-align: center;
             width: 300px;
         `;
-        
-        const modalMessage = document.createElement('p');
-        modalMessage.id = 'modal-message';
-        
-        const modalButton = document.createElement('button');
-        modalButton.id = 'modal-button';
-        
-        modalContent.appendChild(modalMessage);
-        modalContent.appendChild(modalButton);
-        modal.appendChild(modalContent);
-        
-        document.body.appendChild(modal);
-    }
+
+    const modalMessage = document.createElement("p");
+    modalMessage.id = "modal-message";
+
+    const modalButton = document.createElement("button");
+    modalButton.id = "modal-button";
+
+    modalContent.appendChild(modalMessage);
+    modalContent.appendChild(modalButton);
+    modal.appendChild(modalContent);
+
+    document.body.appendChild(modal);
+  }
 }
 
 // Обновляем функции отображения результатов
 function showWinMessage() {
-    createModal();
-    
-    modal.style.display = 'flex';
-    document.getElementById('modal-message').textContent = 
-        `Congratulations! You won in ${timer} seconds!`;
-    document.getElementById('modal-button').textContent = 'Play Again';
-    
-    document.getElementById('modal-button').onclick = () => {
-        restartGame();
-    };
+  createModal();
+
+  modal.style.display = "flex";
+  document.getElementById(
+    "modal-message"
+  ).textContent = `Congratulations! You won in ${timer} seconds!`;
+  document.getElementById("modal-button").textContent = "Play Again";
+
+  document.getElementById("modal-button").onclick = () => {
+    restartGame();
+  };
 }
 
 function showLossMessage() {
-    createModal();
-    
-    modal.style.display = 'flex';
-    document.getElementById('modal-message').textContent = 'Game Over! No more valid pairs.';
-    document.getElementById('modal-button').textContent = 'Try Again';
-    
-    document.getElementById('modal-button').onclick = () => {
-        restartGame();
-    };
+  createModal();
+
+  modal.style.display = "flex";
+  document.getElementById("modal-message").textContent =
+    "Game Over! No more valid pairs.";
+  document.getElementById("modal-button").textContent = "Try Again";
+
+  document.getElementById("modal-button").onclick = () => {
+    restartGame();
+  };
 }
 
 // Функция перезапуска игры
 function restartGame() {
-    modal.style.display = 'none';
-    startGame(currentMode);
+  modal.style.display = "none";
+  startGame(currentMode);
 }
 
 // Обновляем проверки на победу и поражение
 function checkWin() {
-    if (score >= TARGET_SCORE) {
-        stopTimer();
-        showWinMessage();
-        return true;
-    }
-    return false;
+  if (score >= TARGET_SCORE) {
+    stopTimer();
+    showWinMessage();
+    return true;
+  }
+  return false;
 }
 
 function checkLoss() {
-    const availablePairs = countValidPairs();
-    if (availablePairs === 0) {
-        stopTimer();
-        showLossMessage();
-        return true;
-    }
-    return false;
+  const availablePairs = countValidPairs();
+  if (availablePairs === 0) {
+    stopTimer();
+    showLossMessage();
+    return true;
+  }
+  return false;
 }
 // ------------------------------------------------------------
+function createRemoveButton() {
+  if (!removeButton) {
+    removeButton = document.createElement("button");
+    removeButton.id = "remove-btn";
+    removeButton.textContent = "Eraser";
+    removeButton.addEventListener("click", handleRemoveButtonClick);
+    gameInfoContainer.appendChild(removeButton);
+  }
+}
+
+function handleRemoveButtonClick() {
+  if (!selectedCellForRemove) {
+    alert("First select the cell in the field!");
+    return;
+  }
+
+  if (eraseCount >= MAX_SHUFFLE_USES) {
+    alert("You ran out of attempts!");
+    return;
+  }
+// Удаляем число
+removeSingleNumber(selectedCellForRemove);
+  selectedCellForRemove = null;
+
+
+  // Обновляем отображение сетки
+  renderGrid();
+
+  // Обновляем счетчик использований перемешивания
+  eraseCount++;
+
+  // Обновляем текст на кнопке
+  removeButton.textContent = `Erase (${eraseCount}/${MAX_SHUFFLE_USES})`;
+  // Обновляем подсказки после перемешивания
+  updateHints();
+
+  
+  renderGrid();
+}
+
+// Добавляем обработчик для сброса счетчика при начале новой игры
+function resetEraseCount() {
+  eraseCount = 0;
+  removeButton.textContent = `Erase (0/${MAX_SHUFFLE_USES})`;
+}
+
+function removeSingleNumber(cell) {
+  let { row, col } = cell;
+
+  // Проверяем, что ячейка не пустая
+  if (!grid[row][col]) return;
+
+  // Удаляем число из сетки
+  grid[row][col] = null;
+
+  // Обновляем интерфейс
+  renderGrid();
+
+  // Сохраняем удаленное число для возможности отмены
+  lastRemovedCell = cell;
+  canUndo = true;
+  updateUndoButtonState();
+}

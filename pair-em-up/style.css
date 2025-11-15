@@ -3,7 +3,7 @@ a {
 }
 #ui-container {
     width: 100%;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
 	border: 1px solid rgb(132, 0, 255);
 	text-align: center;
@@ -49,10 +49,10 @@ table {
 
 td {
     border: 1px solid #aaadaa;
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
     text-align: center;
-    font-size: 25px;
+    font-size: 35px;
 }
 td.selected {
     background-color: #ffd700;
@@ -60,7 +60,7 @@ td.selected {
 }
 
 span{
-    font-size: 40px;
+    font-size: 18px;
     color: green
 }
 
@@ -70,7 +70,7 @@ span{
 }
 
 #hint-display{
-    font-size: 26px;
+    font-size: 18px;
 }
 
 @keyframes pulse {
@@ -90,7 +90,7 @@ span{
     margin: 10px;
 }
 #game-field-container {
-    border: 1px solid rgb(255, 0, 64);
+    /* border: 1px solid rgb(255, 0, 64); */
     margin: 10px;
 }
 #game-controls {
@@ -112,7 +112,7 @@ button {
 }
 
 #timer-display{
-  font-size: 26px;
+  font-size: 18px;
 }
 
 #info-container{
@@ -124,10 +124,10 @@ button {
 #game-container {
     display: flex; /* Включаем flex-layout */
     justify-content: center; /* Распределение пространства */
-    gap: 20px; /* Расстояние между колонками */
-    width: 40%;
+    /* gap: 20px; Расстояние между колонками */
+    width: 60%;
     /* flex-direction: column; */
-    border: 1px solid rgb(255, 251, 0);
+    border: 1px solid rgb(95, 8, 209);
     margin: 0 auto;
 
 }

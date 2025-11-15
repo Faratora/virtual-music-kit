@@ -2,6 +2,7 @@
 const TARGET_SCORE = 100; // Целевой счёт для победы
 const MAX_SHUFFLE_USES = 5;
 const GRID_SIZE = 9;
+const MAX_ROWS = 50;
 let gameContainer;
 let hintsUsed = 0;
 let eraseCount = 0;
@@ -132,6 +133,8 @@ function createGameElements() {
     gameInfoContainer.id = "game-info-container";
     gameContainer.appendChild(gameInfoContainer);
   }
+
+
   // Создаем элементы для счета и таймера с проверкой
   if (scoreDisplay === undefined) {
     scoreDisplay = document.createElement("span");
@@ -141,12 +144,29 @@ function createGameElements() {
 
   scoreDisplay.textContent = `Score: 0/${TARGET_SCORE}`;
 
-  // Создаем элементы таймера
+// Таймер игры
+  if (!timerDisplay) {
+    timerDisplay = document.createElement("div");
+    timerDisplay.id = "timer-display";
+    gameInfoContainer.appendChild(timerDisplay);
+  }
+  timerDisplay.textContent = "Time: 00:00";
+
+  // Экран вывода подсказки
+  if (hintDisplay === undefined) {
+    hintDisplay = document.createElement("div");
+    hintDisplay.id = "hint-display";
+    gameInfoContainer.appendChild(hintDisplay);
+  }
+  hintDisplay.textContent = "Hints: 0";
+
+// Создаем элементы таймера
   if (timerDisplay === undefined) {
     let timerDisplay = document.createElement("div");
     timerDisplay.id = "timer-display";
     gameInfoContainer.appendChild(timerDisplay);
   }
+  
   // Кнопка подсказки
   if (hintButton === undefined) {
     hintButton = document.createElement("button");
@@ -155,14 +175,6 @@ function createGameElements() {
     hintButton.addEventListener("click", showHint);
     gameInfoContainer.appendChild(hintButton);
   }
-
-  if (hintDisplay === undefined) {
-    // Экран вывода подсказки
-    hintDisplay = document.createElement("div");
-    hintDisplay.id = "hint-display";
-    gameInfoContainer.appendChild(hintDisplay);
-  }
-  hintDisplay.textContent = "Hints: 0";
 
   // Счётчик использованных подсказок
   function createHintCounter() {
@@ -199,13 +211,7 @@ function createGameElements() {
     // settingsBtn.onclick = () => alert("Open settings panel");
     gameInfoContainer.appendChild(settingsBtn);
   }
-  // Таймер игры
-  if (!timerDisplay) {
-    timerDisplay = document.createElement("div");
-    timerDisplay.id = "timer-display";
-    gameInfoContainer.appendChild(timerDisplay);
-  }
-  timerDisplay.textContent = "Time: 00:00";
+  
 
   createRevertButton();
   createSaveButton();
@@ -510,44 +516,171 @@ function stopTimer() {
 }
 
 // Функция добавление новых строк в игровое поле в классическом режиме
+// function addClassicRows() {
+//   // Проверяем, можно ли добавить новую строку
+//   if (grid.length >= GRID_SIZE) return;
+
+//   function getShuffledRemainingNumbers() {
+//     const numbers = [];
+
+//     for (let row of grid) {
+//       for (let cell of row) {
+//         if (cell !== 0) {
+//           numbers.push(cell);
+//         }
+//       }
+//     }
+
+//     while (numbers.length < GRID_SIZE * 3) {
+//       numbers.push(Math.floor(Math.random() * 9) + 1);
+//     }
+
+//     for (let i = numbers.length - 1; i > 0; i--) {
+//       const j = Math.floor(Math.random() * (i + 1));
+//       [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+//     }
+
+//     return numbers;
+//   }
+
+//   for (let i = 0; i < 3; i++) {
+//     const patternIndex = currentPatternIndex % pattern.length;
+
+//     // Фильтруем пустые значения перед добавлением
+//     const filteredPattern = pattern[patternIndex].filter((cell) => cell !== 0);
+//     grid.push(filteredPattern.slice());
+
+//     currentPatternIndex++;
+//   }
+//   renderGrid();
+// }
+
+
+
+
+// Функция добавления новых строк в классическом режиме
 function addClassicRows() {
-  // Проверяем, можно ли добавить новую строку
-  if (grid.length >= GRID_SIZE) return;
-
-  function getShuffledRemainingNumbers() {
-    const numbers = [];
-
-    for (let row of grid) {
-      for (let cell of row) {
-        if (cell !== 0) {
-          numbers.push(cell);
-        }
-      }
-    }
-
-    while (numbers.length < GRID_SIZE * 3) {
-      numbers.push(Math.floor(Math.random() * 9) + 1);
-    }
-
-    for (let i = numbers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-    }
-
-    return numbers;
+    // Проверяем, можно ли добавить новую строку
+    if (grid.length >= MAX_ROWS) {
+    showMaxRowsMessage();
   }
+// Добавляем сообщение о достижении максимального количества добавленных строк
 
-  for (let i = 0; i < 3; i++) {
-    const patternIndex = currentPatternIndex % pattern.length;
+    // Удаляем пустые строки
+    removeEmptyCells();
 
-    // Фильтруем пустые значения перед добавлением
-    const filteredPattern = pattern[patternIndex].filter((cell) => cell !== 0);
-    grid.push(filteredPattern.slice());
+const currentRowCount = grid.length;
 
-    currentPatternIndex++;
+  if (currentRowCount === 0 || currentRowCount >= MAX_ROWS) {
+    showMaxRowsMessage();
+    return;
   }
+    // Получаем все оставшиеся числа
+    const remainingNumbers = getShuffledRemainingNumbers();
+
+  // Добавляем столько строк, сколько уже есть, но не больше maxAddable
+  const rowsToAdd = Math.min(currentRowCount, MAX_ROWS - currentRowCount);
+
+  for (let i = 0; i < rowsToAdd; i++) {
+    const newRow = remainingNumbers.splice(0, GRID_SIZE);
+// Заполняем только оставшиеся ячейки в строке нулями
+    while (newRow.length < GRID_SIZE) {
+      newRow.push(null);
+    }
+
+    // // Если не хватает чисел — заполняем null
+    // while (newRow.length < GRID_SIZE) {
+    //   newRow.push(null);
+    // }
+    grid.push(newRow);
+     // Удаляем пустые строки
+    
+  }
+  removeEmptyRows();
   renderGrid();
+  if (grid.length >= MAX_ROWS) {
+    showMaxRowsMessage();
+  }  
 }
+
+
+
+
+
+// Функция удаления пустых ячеек
+function removeEmptyCells() {
+    // Создаем новый массив для хранения непустых строк
+    const newGrid = [];
+    
+    // Проходим по всем строкам
+    for (let row of grid) {
+        // Проверяем, есть ли в строке хотя бы одно ненулевое значение
+        if (row.some(cell => cell !== 0)) {
+            newGrid.push(row);
+        }
+    }
+    
+    // Обновляем сетку
+    grid = newGrid;
+    
+}
+
+// Функция получения оставшихся чисел
+function getShuffledRemainingNumbers() {
+    const numbers = [];
+    for (let row of grid) {
+        for (let cell of row) {
+            if (cell !== null) {
+                numbers.push(cell);
+            }
+        }
+    }
+    return numbers;
+}
+
+// Функция удаления пустых строк
+function removeEmptyRows() {
+  grid = grid.filter(row =>
+    row.some(cell => cell !== 0 && cell !== null && cell !== undefined)
+  );
+}
+
+// Сообщения 
+function showMaxRowsMessage() {
+  // Проверяем, есть ли уже сообщение
+  let messageEl = document.getElementById("maxRowsMessage");
+
+  if (!messageEl) {
+    // Создаём элемент
+    messageEl = document.createElement("div");
+    messageEl.id = "maxRowsMessage";
+    messageEl.textContent = "Вы добавили максимальное количество строк (50).";
+
+    // Стилизация
+    messageEl.style.position = "fixed";
+    messageEl.style.bottom = "20px";
+    messageEl.style.left = "50%";
+    messageEl.style.transform = "translateX(-50%)";
+    messageEl.style.backgroundColor = "#d9534f";
+    messageEl.style.color = "#fff";
+    messageEl.style.padding = "10px 20px";
+    messageEl.style.borderRadius = "5px";
+    messageEl.style.fontFamily = "sans-serif";
+    messageEl.style.fontSize = "16px";
+    messageEl.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+    messageEl.style.zIndex = "1000";
+
+    document.body.appendChild(messageEl);
+
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+      messageEl.remove();
+    }, 3000);
+  }
+}
+
+
+
 
 // Генерация добавление новых строк в игровое поле в сетки с числами Random
 function generateRandomGrid() {
@@ -937,7 +1070,7 @@ function updateHints() {
 
   // Обновляем отображение доступных пар
   if (hintDisplay) {
-    hintDisplay.textContent = `Available pairs: ${availablePairs}`;
+    hintDisplay.textContent = `Hints: ${availablePairs}`;
   }
 
   // Если нет доступных пар, проверяем поражение

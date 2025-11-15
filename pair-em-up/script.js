@@ -134,7 +134,6 @@ function createGameElements() {
     gameContainer.appendChild(gameInfoContainer);
   }
 
-
   // Создаем элементы для счета и таймера с проверкой
   if (scoreDisplay === undefined) {
     scoreDisplay = document.createElement("span");
@@ -144,7 +143,7 @@ function createGameElements() {
 
   scoreDisplay.textContent = `Score: 0/${TARGET_SCORE}`;
 
-// Таймер игры
+  // Таймер игры
   if (!timerDisplay) {
     timerDisplay = document.createElement("div");
     timerDisplay.id = "timer-display";
@@ -160,13 +159,13 @@ function createGameElements() {
   }
   hintDisplay.textContent = "Hints: 0";
 
-// Создаем элементы таймера
+  // Создаем элементы таймера
   if (timerDisplay === undefined) {
     let timerDisplay = document.createElement("div");
     timerDisplay.id = "timer-display";
     gameInfoContainer.appendChild(timerDisplay);
   }
-  
+
   // Кнопка подсказки
   if (hintButton === undefined) {
     hintButton = document.createElement("button");
@@ -181,7 +180,7 @@ function createGameElements() {
     if (!hintCounterDisplay) {
       hintCounterDisplay = document.createElement("div");
       hintCounterDisplay.id = "hint-counter";
-      hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
+      // hintCounterDisplay.textContent = `Hints used: ${hintCount}`;
       gameInfoContainer.appendChild(hintCounterDisplay);
     }
     updateHintCounterDisplay(); // Обновляем отображение
@@ -208,10 +207,9 @@ function createGameElements() {
     settingsBtn = document.createElement("button");
     settingsBtn.id = "setting";
     settingsBtn.textContent = "Settings";
-    // settingsBtn.onclick = () => alert("Open settings panel");
+    // settingsBtn.onclick = () => showMessage("Open settings panel");
     gameInfoContainer.appendChild(settingsBtn);
   }
-  
 
   createRevertButton();
   createSaveButton();
@@ -227,9 +225,9 @@ function createGameElements() {
 // Счётчик использованных подсказок
 function updateHintCounterDisplay() {
   const hintElement = document.getElementById("hint-display");
-  if (hintCounterDisplay) {
-    hintCounterDisplay.textContent = `Hints used: ${hintCount}/${MAX_HINTS}`;
-  }
+  // if (hintCounterDisplay) {
+  //   hintCounterDisplay.textContent = `Hints used: ${hintCount}/${MAX_HINTS}`;
+  // }
 }
 // // Счётчик использованных подсказок
 // function createHintCounter() {
@@ -555,129 +553,146 @@ function stopTimer() {
 //   renderGrid();
 // }
 
-
-
-
 // Функция добавления новых строк в классическом режиме
 function addClassicRows() {
-    // Проверяем, можно ли добавить новую строку
-    if (grid.length >= MAX_ROWS) {
-    showMaxRowsMessage();
+  // Проверяем, можно ли добавить новую строку
+  if (grid.length >= MAX_ROWS) {
+    showMessage("You have added the maximum number of lines (50).", "warning");
   }
-// Добавляем сообщение о достижении максимального количества добавленных строк
+  // Добавляем сообщение о достижении максимального количества добавленных строк
 
-    // Удаляем пустые строки
-    removeEmptyCells();
+  // Удаляем пустые строки
+  removeEmptyCells();
 
-const currentRowCount = grid.length;
+  const currentRowCount = grid.length;
 
   if (currentRowCount === 0 || currentRowCount >= MAX_ROWS) {
-    showMaxRowsMessage();
+    showMessage("You have added the maximum number of lines (50).", "warning");
     return;
   }
-    // Получаем все оставшиеся числа
-    const remainingNumbers = getShuffledRemainingNumbers();
+  // Получаем все оставшиеся числа
+  const remainingNumbers = getShuffledRemainingNumbers();
 
   // Добавляем столько строк, сколько уже есть, но не больше maxAddable
   const rowsToAdd = Math.min(currentRowCount, MAX_ROWS - currentRowCount);
 
   for (let i = 0; i < rowsToAdd; i++) {
     const newRow = remainingNumbers.splice(0, GRID_SIZE);
-// Заполняем только оставшиеся ячейки в строке нулями
+    // Заполняем только оставшиеся ячейки в строке нулями
     while (newRow.length < GRID_SIZE) {
       newRow.push(null);
     }
-
-    // // Если не хватает чисел — заполняем null
-    // while (newRow.length < GRID_SIZE) {
-    //   newRow.push(null);
-    // }
     grid.push(newRow);
-     // Удаляем пустые строки
-    
+    // Удаляем пустые строки
   }
   removeEmptyRows();
   renderGrid();
   if (grid.length >= MAX_ROWS) {
-    showMaxRowsMessage();
-  }  
+    // showMessage(1111111111111111111111111);
+  }
 }
-
-
-
-
 
 // Функция удаления пустых ячеек
 function removeEmptyCells() {
-    // Создаем новый массив для хранения непустых строк
-    const newGrid = [];
-    
-    // Проходим по всем строкам
-    for (let row of grid) {
-        // Проверяем, есть ли в строке хотя бы одно ненулевое значение
-        if (row.some(cell => cell !== 0)) {
-            newGrid.push(row);
-        }
+  // Создаем новый массив для хранения непустых строк
+  const newGrid = [];
+
+  // Проходим по всем строкам
+  for (let row of grid) {
+    // Проверяем, есть ли в строке хотя бы одно ненулевое значение
+    if (row.some((cell) => cell !== 0)) {
+      newGrid.push(row);
     }
-    
-    // Обновляем сетку
-    grid = newGrid;
-    
+  }
+
+  // Обновляем сетку
+  grid = newGrid;
 }
 
 // Функция получения оставшихся чисел
 function getShuffledRemainingNumbers() {
-    const numbers = [];
-    for (let row of grid) {
-        for (let cell of row) {
-            if (cell !== null) {
-                numbers.push(cell);
-            }
-        }
+  const numbers = [];
+  for (let row of grid) {
+    for (let cell of row) {
+      if (cell !== null) {
+        numbers.push(cell);
+      }
     }
-    return numbers;
+  }
+  return numbers;
 }
 
 // Функция удаления пустых строк
 function removeEmptyRows() {
-  grid = grid.filter(row =>
-    row.some(cell => cell !== 0 && cell !== null && cell !== undefined)
+  grid = grid.filter((row) =>
+    row.some((cell) => cell !== 0 && cell !== null && cell !== undefined)
   );
 }
 
-// Сообщения 
-function showMaxRowsMessage() {
-  // Проверяем, есть ли уже сообщение
-  let messageEl = document.getElementById("maxRowsMessage");
 
-  if (!messageEl) {
-    // Создаём элемент
-    messageEl = document.createElement("div");
-    messageEl.id = "maxRowsMessage";
-    messageEl.textContent = "Вы добавили максимальное количество строк (50).";
 
-    // Стилизация
-    messageEl.style.position = "fixed";
-    messageEl.style.bottom = "20px";
-    messageEl.style.left = "50%";
-    messageEl.style.transform = "translateX(-50%)";
-    messageEl.style.backgroundColor = "#d9534f";
-    messageEl.style.color = "#fff";
-    messageEl.style.padding = "10px 20px";
-    messageEl.style.borderRadius = "5px";
-    messageEl.style.fontFamily = "sans-serif";
-    messageEl.style.fontSize = "16px";
-    messageEl.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
-    messageEl.style.zIndex = "1000";
 
-    document.body.appendChild(messageEl);
+// Сообщения
+let messageContainer = null;
 
-    // Удаляем через 3 секунды
-    setTimeout(() => {
-      messageEl.remove();
-    }, 3000);
+function showMessage(text, type = "info", duration = 3000) {
+  // Создаём контейнер, если его нет
+  if (!messageContainer) {
+    messageContainer = document.createElement("div");
+    messageContainer.id = "messageContainer";
+    document.body.appendChild(messageContainer);
   }
+
+  // Цвет по типу сообщения
+  switch (type) {
+    case "error":
+      messageContainer.style.backgroundColor = "#f44336";
+      messageContainer.style.color = "#fff";
+      break;
+    case "success":
+      messageContainer.style.backgroundColor = "#4CAF50";
+      messageContainer.style.color = "#fff";
+      break;
+    case "warning":
+      messageContainer.style.backgroundColor = "#ff9800";
+      messageContainer.style.color = "#fff";
+      break;
+    default:
+      messageContainer.style.backgroundColor = "#2196F3";
+      messageContainer.style.color = "#fff";
+  }
+
+  messageContainer.textContent = text;
+  messageContainer.style.display = "block";
+
+  // Удаление через duration мс
+  setTimeout(() => {
+    messageContainer.style.display = "none";
+  }, duration);
 }
+
+
+
+
+
+// function showMessage() {
+//   // Проверяем, есть ли уже сообщение
+//   let message = document.getElementById("message");
+
+//   if (!message) {
+//     // Создаём элемент
+//     message = document.createElement("div");
+//     message.id = "message";
+//     message.textContent = "You have added the maximum number of lines (50).";
+//     document.body.appendChild(message);
+
+//     // Удаляем через 3 секунды
+//     setTimeout(() => {
+//       message.remove();
+//     }, 3000);
+//   }
+// }
+
 
 
 
@@ -873,11 +888,7 @@ function updateScore(num1, num2) {
     points = 2;
   }
   return points; // Возвращаем очки, не меняем score!
-
-  // score += points;
-  // document.getElementById(
-  //   "score-display"
-  // ).textContent = `Score: ${score}/${TARGET_SCORE}`;
+  
 }
 
 // Удаление пары ячеек
@@ -936,12 +947,7 @@ function checkPair() {
     // Удаляем пару из сетки
     removePair(cell1, cell2);
     updateScore(num1, num2);
-    // } else {
-    // alert("Wrong pair!");
-    // clearSelection();
-
-    // removePair(cell1, cell2);
-
+    
     // Добавляем очки к счёту
     const points = updateScore(num1, num2);
     score += points;
@@ -957,7 +963,7 @@ function checkPair() {
     // Обновляем доступные пары
     updateHints();
   } else {
-    alert("Wrong pair!");
+    showMessage("Wrong pair!", "warning");
     clearSelection();
   }
   // Проверяем поражение после каждого хода
@@ -1068,9 +1074,11 @@ function updateHints() {
 
   const availablePairs = countValidPairs();
 
+    
   // Обновляем отображение доступных пар
   if (hintDisplay) {
-    hintDisplay.textContent = `Hints: ${availablePairs}`;
+    // hintDisplay.textContent = `Hints1: ${availablePairs}`;
+    
   }
 
   // Если нет доступных пар, проверяем поражение
@@ -1087,7 +1095,7 @@ function updateHints() {
 // Обработчик клика
 function showHint() {
   if (hintCount >= MAX_HINTS) {
-    alert("No more hints available!");
+    showMessage("No more hints available!", "success");
     return;
   }
 
@@ -1102,7 +1110,7 @@ function showHint() {
     // updateHintCounterDisplay(); // Обновляем отображение
     console.log("Использована подсказка");
   } else {
-    alert("No hint available");
+    showMessage("No hint available", "success");
   }
 }
 
@@ -1386,7 +1394,7 @@ function saveGameState() {
 
   // Сохраняем в localStorage
   localStorage.setItem("savedGame", JSON.stringify(gameState));
-  alert("Game saved!");
+  showMessage("Game saved!", "success");
   // Сохраняем количество использованных перемешиваний
   localStorage.setItem("shuffleCount", shuffleCount);
 }
@@ -1395,7 +1403,7 @@ function saveGameState() {
 function loadGameState() {
   const savedGame = localStorage.getItem("savedGame");
   if (!savedGame) {
-    alert("No saved game found!");
+    showMessage("No saved game found!", "success");
     return;
   }
 
@@ -1444,7 +1452,7 @@ function updateTimerDisplay() {
 function continueGame() {
   const savedGame = localStorage.getItem("savedGame");
   if (!savedGame) {
-    alert("No saved game to continue!");
+    showMessage("No saved game to continue!", "success");
     return;
   }
 
@@ -1460,14 +1468,14 @@ function continueGame() {
   }
 
   // Показываем сообщение
-  alert("Game continued!");
+  showMessage("Game continued!");
 }
 
 // Функция перемешивания
 function shuffleGrid() {
   // Проверяем количество оставшихся перемешиваний
   if (shuffleCount >= MAX_SHUFFLE_USES) {
-    alert("You've reached the maximum number of shuffles!");
+    showMessage("You've reached the maximum number of shuffles!", "success");
     return;
   }
 
@@ -1520,7 +1528,7 @@ function resetShuffleCount() {
 function checkWin() {
   // Проверяем, достигнута ли целевая оценка
   if (score >= TARGET_SCORE) {
-    alert("Вы победили!");
+    showMessage("you win!", "success");
     // логик завершения игры
   }
 }
@@ -1713,18 +1721,17 @@ function createRemoveButton() {
 
 function handleRemoveButtonClick() {
   if (!selectedCellForRemove) {
-    alert("First select the cell in the field!");
+    showMessage("First select the cell in the field!", "success");
     return;
   }
 
   if (eraseCount >= MAX_SHUFFLE_USES) {
-    alert("You ran out of attempts!");
+    showMessage("You ran out of attempts!", "success");
     return;
   }
-// Удаляем число
-removeSingleNumber(selectedCellForRemove);
+  // Удаляем число
+  removeSingleNumber(selectedCellForRemove);
   selectedCellForRemove = null;
-
 
   // Обновляем отображение сетки
   renderGrid();
@@ -1737,7 +1744,6 @@ removeSingleNumber(selectedCellForRemove);
   // Обновляем подсказки после перемешивания
   updateHints();
 
-  
   renderGrid();
 }
 

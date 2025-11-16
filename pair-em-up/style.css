@@ -1,0 +1,210 @@
+a {
+  font-size: 25px;
+}
+#ui-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+	border: 1px solid rgb(132, 0, 255);
+	text-align: center;
+}
+h1{
+    font-size: 50px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+     flex-direction: column;
+    padding: 5px 0;
+}
+
+.header a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.header img {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+#grid-container {
+    width: 100%;
+    max-width: 600px;    /* Максимальная ширина сетки */
+    margin: 20px auto;   /* Отступы сверху/снизу и центрирование */
+    font-size: 30px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;         /* Таблица занимает всю доступную ширину */
+    margin: 0 auto;      /* Центрирование таблицы */
+    max-height: 60%;
+}
+
+td {
+    border: 1px solid #aaadaa;
+    width: 80px;
+    height: 80px;
+    text-align: center;
+    font-size: 35px;
+}
+td.selected {
+    background-color: #ffd700;
+    border: 2px solid #959ba1;
+}
+
+span{
+    font-size: 18px;
+    color: green
+}
+
+.hint {
+    background-color: rgb(21, 223, 82) !important;
+    animation: pulse 1s infinite;
+}
+
+#hint-display{
+    font-size: 18px;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Стили для правой колонки */
+#game-info-container {
+    display: flex; /* Включаем flex-layout */
+    flex-direction: column; /* Располагаем элементы в столбик */
+    align-items: flex-start; /* Выравнивание по левому краю */
+    gap: 10px; /* Расстояние между элементами */
+    padding: 10px;
+    border: 1px solid rgb(166, 255, 0);
+    margin: 10px;
+}
+#game-field-container {
+    /* border: 1px solid rgb(255, 0, 64); */
+    margin: 10px;
+}
+#game-controls {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background: #007bff;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+#timer-display{
+  font-size: 18px;
+}
+
+#info-container{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid rgb(0, 255, 85);
+}
+#game-container {
+    display: flex; /* Включаем flex-layout */
+    justify-content: center; /* Распределение пространства */
+    /* gap: 20px; Расстояние между колонками */
+    width: 60%;
+    /* flex-direction: column; */
+    border: 1px solid rgb(95, 8, 209);
+    margin: 0 auto;
+
+}
+
+/* Стили для правой колонки */
+#game-info-container {
+    display: flex; /* Включаем flex-layout */
+    flex-direction: column; /* Располагаем элементы в столбик */
+    align-items: flex-start; /* Выравнивание по левому краю */
+    gap: 10px; /* Расстояние между элементами */
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+/* Дополнительно можно добавить стили для кнопок и элементов */
+#game-info > * {
+    margin: 5px 0; /* Отступы между элементами */
+}
+
+#game-info button {
+    width: 100%; /* Кнопки на всю ширину колонки */
+    margin-bottom: 5px;
+}
+
+/* Стили для выравнивания текста */
+#game-info span,
+#game-info div {
+    text-align: left; /* Выравнивание текста по левому краю */
+}
+
+.revert-btn-active {
+    color: white;
+    cursor: pointer;
+}
+
+.revert-btn-inactive {
+    background-color: #cccccc; /* серый */
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.disabled {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.results-panel{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border: 2px solid #333;
+    padding: 20px;
+    z-index: 1000;
+}
+.selected-for-remove {
+    background-color: yellow;
+    animation: highlight 0.5s ease-in-out;
+}
+
+@keyframes highlight {
+    0% { background-color: yellow; }
+    50% { background-color: lightyellow; }
+    100% { background-color: yellow; }
+}
+ #messageContainer{
+   position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color:#d9534f;
+    color: #fff;
+    padding:10px 20px;
+    border-radius: 5px;
+    font-family: sans-serif;
+    font-size: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    z-Index: 1000;
+ }

@@ -1301,44 +1301,6 @@ function clearHintHighlight() {
   highlightedCells.forEach((cell) => cell.classList.remove("hint-highlight"));
 }
 
-// // Функция поиска доступной пары для подсказки
-// function findAvailablePair() {
-//     if (!grid || grid.length === 0) return null;
-
-//     const rows = grid.length;
-//     const cols = grid[0]?.length || 0;
-
-//     for (let row1 = 0; row1 < rows; row1++) {
-//         for (let col1 = 0; col1 < cols; col1++) {
-//             if (grid[row1][col1] === null) continue;
-
-//             // Проверяем вправо
-//             if (col1 + 1 < cols && grid[row1][col1 + 1] !== null) {
-//                 if (isAdjacent({row: row1, col: col1}, {row: row1, col: col1 + 1}) &&
-//                     isValidPair(grid[row1][col1], grid[row1][col1 + 1])) {
-//                     return [
-//                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col1 + 1})`),
-//                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col2 + 2})`)
-//                     ];
-//                 }
-//             }
-
-//             // Проверяем вниз
-//             if (row1 + 1 < rows && grid[row1 + 1][col1] !== null) {
-//                 if (isAdjacent({row: row1, col: col1}, {row: row1 + 1, col: col1}) &&
-//                     isValidPair(grid[row1][col1], grid[row1 + 1][col1])) {
-//                     return [
-//                         document.querySelector(`#game-grid tr:nth-child(${row1 + 1}) td:nth-child(${col1 + 1})`),
-//                         document.querySelector(`#game-grid tr:nth-child(${row2 + 2}) td:nth-child(${col1 + 1})`)
-//                     ];
-//                 }
-//             }
-//         }
-//     }
-
-//     return null;
-// }
-
 // -------------------------------------------------------------------------------------------------
 // Функция отмены Revert
 function undoLastMove() {

@@ -717,31 +717,139 @@ function generateRandomGrid() {
   }, []);
 }
 
+
+
+
+// Перемешивание  в Random mode
+function getShuffledRandomingNumbers() {
+    // Собираем все числа
+    const numbers = grid.flat()
+        .filter(cell => cell !== null && cell !== undefined);
+    
+    // Перемешиваем массив
+    for (let i = numbers.length - 1; i > 0; i--) {
+        // Генерируем случайный индекс
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        
+        // Меняем элементы местами
+        [numbers[i], numbers[randomIndex]] = [numbers[randomIndex], numbers[i]];
+    }
+    
+    return numbers;
+}
+
+
+
 // Функция добавление новых строк в игровое поле в Random mode
 function addRandomRow() {
-  // Проверяем, можно ли добавить новую строку
-  if (grid.length >= GRID_SIZE) return;
-  // grid.push(Array.from({ length: GRID_SIZE }, () => Math.floor(Math.random() * 9) + 1));
-  // Получаем все числа в текущей сетке, исключая нули
-  remainingNumbers = grid.flat().filter((n) => n !== 0);
-
-  // Генерируем новую строку из чисел 1-9
-  const newRow = [];
-  for (let i = 0; i < GRID_SIZE; i++) {
-    newRow.push(Math.floor(Math.random() * 9) + 1);
+  if (grid.length >= MAX_ROWS) {
+    showMessage("You have added the maximum number of lines (50).", "warning");
+    return;
   }
-  grid.push(newRow);
+
+  removeEmptyCells();
+
+  const currentRowCount = grid.length;
+  if (currentRowCount === 0 || currentRowCount >= MAX_ROWS) {
+    showMessage("You have added the maximum number of lines (50).", "warning");
+    return;
+  }
+
+  // Получаем перемешанные оставшиеся числа
+  const remainingNumbers = getShuffledRandomingNumbers();
+
+  const rowsToAdd = Math.min(currentRowCount, MAX_ROWS - currentRowCount);
+
+  for (let i = 0; i < rowsToAdd; i++) {
+    const newRow = remainingNumbers.splice(0, GRID_SIZE);
+
+    while (newRow.length < GRID_SIZE) {
+      newRow.push(null);
+    }
+
+    grid.push(newRow);
+  }
+
+  removeEmptyRows();
   renderGrid();
+
+  if (grid.length >= MAX_ROWS) {
+    showMessage("You have added the maximum number of lines (50).", "warning");
+  }
 }
+
+
+
+
+
+// Перемешивание  в Chaotic mode
+function getShuffledChaoticNumbers() {
+    // Собираем все числа из сетки
+    const numbers = grid.flat()
+        .filter(cell => cell !== null && cell !== undefined);
+    
+    // Получаем количество оставшихся чисел
+    const count = numbers.length;
+    
+    // Генерируем дополнительные случайные числа
+    const randomNumbers = Array.from({length: count}, () => 
+        Math.floor(Math.random() * 9) + 1
+    );
+    
+    // Объединяем массивы
+    const combined = [...numbers, ...randomNumbers];
+    
+    // Перемешиваем объединенный массив
+    for (let i = combined.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [combined[i], combined[randomIndex]] = [combined[randomIndex], combined[i]];
+    }
+    
+    return combined;
+}
+
+
+
+
+
+
 
 // Функция добавления хаотичной строки
 function addChaoticRow() {
-  // Проверяем, можно ли добавить новую строку
-  if (grid.length >= GRID_SIZE) return;
-  grid.push(
-    Array.from({ length: GRID_SIZE }, () => Math.floor(Math.random() * 9) + 1)
-  );
+  if (grid.length >= MAX_ROWS) {
+    showMessage("You have added the maximum number of lines (50).", "warning");
+    return;
+  }
+
+  removeEmptyCells();
+
+  const currentRowCount = grid.length;
+  if (currentRowCount === 0 || currentRowCount >= MAX_ROWS) {
+    showMessage("You have added the maximum number of lines (50).", "warning");
+    return;
+  }
+
+  // Получаем перемешанные оставшиеся числа
+  const remainingNumbers = getShuffledChaoticNumbers();
+
+  const rowsToAdd = Math.min(currentRowCount, MAX_ROWS - currentRowCount);
+
+  for (let i = 0; i < rowsToAdd; i++) {
+    const newRow = remainingNumbers.splice(0, GRID_SIZE);
+
+    while (newRow.length < GRID_SIZE) {
+      newRow.push(null);
+    }
+
+    grid.push(newRow);
+  }
+
+  removeEmptyRows();
   renderGrid();
+
+  if (grid.length >= MAX_ROWS) {
+    showMessage("You have added the maximum number of lines (50).", "warning");
+  }
 }
 
 // Генерация добавление новых строк в игровое поле в сетки с числами Chaotic mode
@@ -751,6 +859,8 @@ function generateChaoticGrid() {
     Array.from({ length: GRID_SIZE }, () => Math.floor(Math.random() * 9) + 1)
   );
 }
+
+
 
 // Функция обработки выбранных ячеек
 function handleClick(cell, col, row) {

@@ -58,6 +58,7 @@ let restartButton;
 let lossMessage;
 let modal;
 let removeButton;
+let currentRowCount;
 
 // Функция создания UI элементов
 function createUIElements() {
@@ -380,10 +381,13 @@ function startGame(selectedMode) {
   switch (mode) {
     case "classic":
       grid = generateClassicGrid();
+
       // Создаем кнопки управления
 
       renderGrid();
       // updateHints();
+
+      currentRowCount = grid.length;
 
       // createControlButtons();
       stopTimer();
@@ -401,9 +405,11 @@ function startGame(selectedMode) {
 
     case "random":
       grid = generateRandomGrid();
+
       // createControlButtons();
       renderGrid();
       // updateHints();
+      currentRowCount = grid.length;
 
       stopTimer();
       startTimer();
@@ -421,6 +427,7 @@ function startGame(selectedMode) {
       // createControlButtons();
       renderGrid();
       // updateHints();
+      currentRowCount = grid.length;
 
       stopTimer();
       startTimer();
@@ -564,7 +571,7 @@ function addClassicRows() {
   // Удаляем пустые строки
   removeEmptyCells();
 
-  const currentRowCount = grid.length;
+  currentRowCount = grid.length;
 
   if (currentRowCount === 0 || currentRowCount >= MAX_ROWS) {
     showMessage("You have added the maximum number of lines (50).", "warning");
@@ -629,9 +636,6 @@ function removeEmptyRows() {
   );
 }
 
-
-
-
 // Сообщения
 let messageContainer = null;
 
@@ -671,10 +675,6 @@ function showMessage(text, type = "info", duration = 3000) {
   }, duration);
 }
 
-
-
-
-
 // function showMessage() {
 //   // Проверяем, есть ли уже сообщение
 //   let message = document.getElementById("message");
@@ -692,10 +692,6 @@ function showMessage(text, type = "info", duration = 3000) {
 //     }, 3000);
 //   }
 // }
-
-
-
-
 
 // Генерация добавление новых строк в игровое поле в сетки с числами Random
 function generateRandomGrid() {
@@ -717,28 +713,24 @@ function generateRandomGrid() {
   }, []);
 }
 
-
-
-
 // Перемешивание  в Random mode
 function getShuffledRandomingNumbers() {
-    // Собираем все числа
-    const numbers = grid.flat()
-        .filter(cell => cell !== null && cell !== undefined);
-    
-    // Перемешиваем массив
-    for (let i = numbers.length - 1; i > 0; i--) {
-        // Генерируем случайный индекс
-        const randomIndex = Math.floor(Math.random() * (i + 1));
-        
-        // Меняем элементы местами
-        [numbers[i], numbers[randomIndex]] = [numbers[randomIndex], numbers[i]];
-    }
-    
-    return numbers;
+  // Собираем все числа
+  const numbers = grid
+    .flat()
+    .filter((cell) => cell !== null && cell !== undefined);
+
+  // Перемешиваем массив
+  for (let i = numbers.length - 1; i > 0; i--) {
+    // Генерируем случайный индекс
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+
+    // Меняем элементы местами
+    [numbers[i], numbers[randomIndex]] = [numbers[randomIndex], numbers[i]];
+  }
+
+  return numbers;
 }
-
-
 
 // Функция добавление новых строк в игровое поле в Random mode
 function addRandomRow() {
@@ -778,41 +770,33 @@ function addRandomRow() {
   }
 }
 
-
-
-
-
 // Перемешивание  в Chaotic mode
 function getShuffledChaoticNumbers() {
-    // Собираем все числа из сетки
-    const numbers = grid.flat()
-        .filter(cell => cell !== null && cell !== undefined);
-    
-    // Получаем количество оставшихся чисел
-    const count = numbers.length;
-    
-    // Генерируем дополнительные случайные числа
-    const randomNumbers = Array.from({length: count}, () => 
-        Math.floor(Math.random() * 9) + 1
-    );
-    
-    // Объединяем массивы
-    const combined = [...numbers, ...randomNumbers];
-    
-    // Перемешиваем объединенный массив
-    for (let i = combined.length - 1; i > 0; i--) {
-        const randomIndex = Math.floor(Math.random() * (i + 1));
-        [combined[i], combined[randomIndex]] = [combined[randomIndex], combined[i]];
-    }
-    
-    return combined;
+  // Собираем все числа из сетки
+  const numbers = grid
+    .flat()
+    .filter((cell) => cell !== null && cell !== undefined);
+
+  // Получаем количество оставшихся чисел
+  const count = numbers.length;
+
+  // Генерируем дополнительные случайные числа
+  const randomNumbers = Array.from(
+    { length: count },
+    () => Math.floor(Math.random() * 9) + 1
+  );
+
+  // Объединяем массивы
+  const combined = [...numbers, ...randomNumbers];
+
+  // Перемешиваем объединенный массив
+  for (let i = combined.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
+    [combined[i], combined[randomIndex]] = [combined[randomIndex], combined[i]];
+  }
+
+  return combined;
 }
-
-
-
-
-
-
 
 // Функция добавления хаотичной строки
 function addChaoticRow() {
@@ -859,8 +843,6 @@ function generateChaoticGrid() {
     Array.from({ length: GRID_SIZE }, () => Math.floor(Math.random() * 9) + 1)
   );
 }
-
-
 
 // Функция обработки выбранных ячеек
 function handleClick(cell, col, row) {
@@ -998,7 +980,6 @@ function updateScore(num1, num2) {
     points = 2;
   }
   return points; // Возвращаем очки, не меняем score!
-  
 }
 
 // Удаление пары ячеек
@@ -1057,7 +1038,7 @@ function checkPair() {
     // Удаляем пару из сетки
     removePair(cell1, cell2);
     updateScore(num1, num2);
-    
+
     // Добавляем очки к счёту
     const points = updateScore(num1, num2);
     score += points;
@@ -1184,11 +1165,9 @@ function updateHints() {
 
   const availablePairs = countValidPairs();
 
-    
   // Обновляем отображение доступных пар
   if (hintDisplay) {
     // hintDisplay.textContent = `Hints1: ${availablePairs}`;
-    
   }
 
   // Если нет доступных пар, проверяем поражение
@@ -1773,7 +1752,10 @@ function checkWin() {
 
 function checkLoss() {
   const availablePairs = countValidPairs();
-  if (availablePairs === 0) {
+  if (
+    availablePairs === 0 &
+    currentRowCount >= MAX_ROWS
+  ) {
     stopTimer();
     showLossMessage();
     return true;

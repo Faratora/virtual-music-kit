@@ -5,7 +5,7 @@ a {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-	border: 1px solid rgb(132, 0, 255);
+	/* border: 1px solid rgb(132, 0, 255); */
 	text-align: center;
 }
 h1{
@@ -86,7 +86,7 @@ span{
     align-items: flex-start; /* Выравнивание по левому краю */
     gap: 10px; /* Расстояние между элементами */
     padding: 10px;
-    border: 1px solid rgb(166, 255, 0);
+    /* border: 1px solid rgb(166, 255, 0); */
     margin: 10px;
 }
 #game-field-container {
@@ -127,7 +127,7 @@ button {
     /* gap: 20px; Расстояние между колонками */
     width: 60%;
     /* flex-direction: column; */
-    border: 1px solid rgb(95, 8, 209);
+    /* border: 1px solid rgb(95, 8, 209); */
     margin: 0 auto;
 
 }

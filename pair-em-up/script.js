@@ -1326,9 +1326,16 @@ function undoLastMove() {
 // }
 
 // Логика работы кнопка  Result
-function showResults() {
+function showResults(score, time, mode) {
   const records = JSON.parse(localStorage.getItem("highScores")) || [];
 
+
+  // Создаем новый объект результата
+    const newRecord = {
+        score: score,
+        time: time,
+        mode: mode // Здесь указываем режим игры
+    };
   const resultsPanel = document.createElement("div");
   resultsPanel.id = "results-panel";
   resultsPanel.style.position = "fixed";
@@ -1349,10 +1356,12 @@ function showResults() {
     emptyMsg.textContent = "No saved results..";
     resultsPanel.appendChild(emptyMsg);
   } else {
+    // Создаем таблицу с колонками
     const table = document.createElement("table");
     table.style.borderCollapse = "collapse";
     table.style.width = "100%";
 
+    // Добавляем заголовок таблицы
     const headerRow = document.createElement("tr");
     ["№", "Score", "Time (s)", "Mode"].forEach((text) => {
       const th = document.createElement("th");
@@ -1363,6 +1372,7 @@ function showResults() {
     });
     table.appendChild(headerRow);
 
+    // Отображаем топ-5 результатов
     records.slice(0, 5).forEach((r, i) => {
       const row = document.createElement("tr");
       [i + 1, r.score, r.time, r.mode].forEach((val) => {
@@ -1384,10 +1394,15 @@ function showResults() {
   resultsPanel.appendChild(closeBtn);
 
   document.body.appendChild(resultsPanel);
+  // Добавляем новый результат
+    records.push(newRecord);
+    
+    // Сохраняем обновленный массив
+    localStorage.setItem("highScores", JSON.stringify(records));
 }
 
 function resetGame() {
-  if (!confirm("Are you sure you want to start the game again?")) {
+  if (!showMessage("Are you sure you want to start the game again?", "success")) {
     return;
   }
   // Очищаем все состояния
